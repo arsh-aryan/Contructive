@@ -9,6 +9,7 @@ import { sirenAnim, okAnim, rainAnim } from '../anim/anims';
 import { exportDpr } from '../services/dpr';
 import { saveProposal } from '../services/supabase';
 import StudyScene from './StudyScene';
+import { buildStudy } from './geometry';
 
 const SIREN = sirenAnim(), OK = okAnim(), RAIN = rainAnim();
 
@@ -25,7 +26,9 @@ export default function StudyView() {
   const mp = useMemo(() => metrics(plan, baseline), [plan, baseline]);
   const shownL = view === 'today' ? baseline : plan;
   const shown = view === 'today' ? mb : mp;
-  const place = area?.features.narrowestName ?? 'Representative lane';
+  const geom = useMemo(() => (area ? buildStudy(area, baseline, plan, view === 'plan') : null), [area, baseline, plan, view]);
+  const geomPlan = useMemo(() => (area ? buildStudy(area, baseline, plan, true) : null), [area, baseline, plan]);
+  const place = geom?.laneName ?? area?.features.narrowestName ?? 'Representative lane';
 
   const groups = useMemo(() => {
     const g: Partial<Record<WorkGroup, { value: string; label: string }[]>> = {};
@@ -55,7 +58,7 @@ export default function StudyView() {
   return (
     <div className="absolute inset-0 grid grid-cols-1 lg:grid-cols-[1fr_400px]">
       <div className="relative min-h-[50vh]">
-        <StudyScene L={shownL} isPlan={view === 'plan'} scenario={scenario} labels={{ call: `${T.scenarios.fire} · Ch. 60`, blocked: T.blocked, through: T.through }} />
+        <StudyScene L={shownL} isPlan={view === 'plan'} scenario={scenario} geom={geom} labels={{ call: `${T.scenarios.fire} · Ch. 60`, blocked: T.blocked, through: T.through }} />
         <div className="glass absolute top-4 left-4 rounded-xl p-3 flex gap-3 flex-wrap shadow-2xl">
           <Field label={T.state}>
             <select className="sel" value={view} onChange={(e) => s.set({ view: e.target.value as 'today' | 'plan' })}>
@@ -68,7 +71,14 @@ export default function StudyView() {
             </select>
           </Field>
         </div>
-        <div className="absolute top-4 right-4 text-[11px] text-muted glass rounded-lg px-3 py-2 max-w-[280px]">{T.representative} <b className="text-ink">{place}</b></div>
+        <div className="absolute top-4 right-4 text-[11px] text-muted glass rounded-lg px-3 py-2 max-w-[320px] leading-relaxed">
+          {geom ? <>{T.realArea} <b className="text-ink">{place}</b>, {city.name}<br /><span className="text-faint">{area!.features.buildingCount} {T.realFootprints}</span></> : <>{T.representative} <b className="text-ink">{place}</b></>}
+          {geom && view === 'plan' && <div className="mt-1.5 grid gap-1">
+            <span className="flex items-center gap-2"><i className="w-3 h-2 rounded-sm bg-fail/60" />{T.legendCut}</span>
+            <span className="flex items-center gap-2"><i className="w-3 h-2 rounded-sm bg-warn/50" />{T.legendCap}</span>
+            <span className="flex items-center gap-2"><i className="w-3 h-2 rounded-sm bg-accent/70" />{T.legendRow}</span>
+          </div>}
+        </div>
         <AnimatePresence>
           {status && (
             <motion.div key={status.key} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 16 }}
@@ -152,7 +162,8 @@ export default function StudyView() {
           <Chip good={mp.flood < mb.flood}>{T.metrics.flood} <b>{mb.flood.toFixed(0)} → {mp.flood.toFixed(0)}</b></Chip>
           {mp.displacement.stallsRelocated > 0 && <Chip><b>{mp.displacement.stallsRelocated}</b> {T.stallsMoved}</Chip>}
           {mp.displacement.stallsLost > 0 && <Chip good={false}><b>{mp.displacement.stallsLost}</b> {T.stallsLost}</Chip>}
-          {mp.displacement.plotsAffected > 0 && <Chip><b>{mp.displacement.plotsAffected}</b> {T.plots} {mp.displacement.setback.toFixed(1)} m</Chip>}
+          {geomPlan ? (geomPlan.affectedCount > 0 && <Chip good={false}><b>{geomPlan.affectedCount}</b> {T.realCut} ({Math.round(geomPlan.removedAreaM2)} m²)</Chip>)
+            : (mp.displacement.plotsAffected > 0 && <Chip><b>{mp.displacement.plotsAffected}</b> {T.plots} {mp.displacement.setback.toFixed(1)} m</Chip>)}
         </> : <Chip>—</Chip>}
         <div className="flex-1" />
         {works.length > 0 && <div className="text-right tnum"><div className="text-[11px] text-muted">{T.metrics.cost} (±40%)</div><div className="font-semibold text-[16px]">₹<Num value={mp.cost.totalCr} d={2} /> Cr</div></div>}

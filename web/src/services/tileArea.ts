@@ -5,6 +5,7 @@ import * as turf from '@turf/turf';
 import type { Map as MLMap, MapGeoJSONFeature } from 'maplibre-gl';
 import type { Feature, Polygon, LineString } from 'geojson';
 import type { AreaData } from './overpass';
+import { studyStreet } from '../study/geometry';
 
 const CLASS_WIDTH: Record<string, number> = {
   motorway: 24, trunk: 18, primary: 14, secondary: 10, tertiary: 7, minor: 5, service: 3.5, track: 3, path: 2, raceway: 8, busway: 7,
@@ -86,8 +87,7 @@ export function areaFromTiles(map: MLMap, lat: number, lng: number, radius = 250
 
   // Measurements
   const sum = (fs: Feature<Polygon>[]) => fs.reduce((a, f) => { try { const i = turf.intersect(turf.featureCollection([f, circle])); return a + (i ? turf.area(i) : 0); } catch { return a; } }, 0);
-  const vehicle = streets.filter((s) => s.properties.cls !== 'path' && turf.pointToLineDistance(cpt, s, { units: 'meters' }) < 120);
-  const pick = (vehicle.length ? vehicle : streets).reduce<AreaData['streets'][number] | null>((a, s) => (!a || s.properties.width < a.properties.width ? s : a), null);
+  const pick = studyStreet({ center, streets });
   const levels = buildings.map((b) => b.properties.levels).filter((x): x is number => x !== null);
   const sorted = [...levels].sort((a, b) => a - b);
   let nearest: { km: number; name: string } | null = null;
