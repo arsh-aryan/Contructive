@@ -9,7 +9,7 @@ export default function TopBar() {
   const T = useT();
   const { lang, role, city, mode, themePref, set } = useApp();
   return (
-    <header className="surface relative z-30 flex flex-wrap items-end gap-4 px-5 py-3 border-b border-line">
+    <header className="surface relative z-30 flex flex-wrap items-end gap-4 px-5 py-3">
       <div className="flex items-center gap-3 self-center mr-2">
         <Brand />
         <div className="hidden xl:block text-[11px] text-muted max-w-[150px] leading-tight">{T.tagline}</div>
@@ -43,6 +43,7 @@ export default function TopBar() {
         </select>
       </Field>
       <span className="self-center text-[10px] px-2 py-1 rounded-full border border-line text-muted" title="Where proposals are saved">● {backendLabel}</span>
+      <div className="rule-flow absolute left-0 right-0 bottom-0" />
     </header>
   );
 }

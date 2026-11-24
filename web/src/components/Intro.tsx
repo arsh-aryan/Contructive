@@ -36,7 +36,7 @@ export default function Intro({ onDone }: { onDone: () => void }) {
     <AnimatePresence onExitComplete={onDone}>
       {!leaving && (
         <motion.div key="intro" className="fixed inset-0 z-[100] grid place-items-center overflow-hidden"
-          style={{ background: 'radial-gradient(120% 90% at 50% 40%, #16213a 0%, #0b1220 60%, #070c16 100%)' }}
+          style={{ background: 'radial-gradient(120% 90% at 50% 40%, #1a1a2c 0%, #0b0b14 60%, #06060c 100%)' }}
           exit={{ clipPath: 'inset(0 0 100% 0)' }} transition={{ duration: 0.7, ease: [0.76, 0, 0.24, 1] }}>
           {/* faint scan lines */}
           <div className="absolute inset-0 opacity-[0.06] pointer-events-none" style={{ backgroundImage: 'repeating-linear-gradient(0deg, #fff 0 1px, transparent 1px 4px)' }} />
@@ -44,33 +44,33 @@ export default function Intro({ onDone }: { onDone: () => void }) {
           <div className="relative w-[min(760px,88vw)] grid justify-items-center gap-7">
             <div className="flex items-center gap-5">
               <Logo size={76} reveal />
-              <div className="flex overflow-hidden font-display font-extrabold text-[clamp(30px,6vw,64px)] tracking-[0.1em] text-[#eef2fa]">
+              <div className="flex overflow-hidden font-display font-extrabold text-[clamp(30px,6vw,64px)] tracking-[0.005em] text-[#f4f1e8]">
                 {word.map((ch, i) => (
                   <motion.span key={i} initial={{ y: '110%' }} animate={{ y: 0 }} transition={{ delay: 0.35 + i * 0.035, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-                    className={i === 0 ? 'text-[#e8486c]' : ''}>{ch}</motion.span>
+                    className={i === 0 ? 'text-[#c8f03c]' : ''}>{ch}</motion.span>
                 ))}
               </div>
             </div>
 
             {/* the string: two markers, a drawn line, a travelling crimson node */}
             <div className="relative w-full h-6 flex items-center">
-              <span className="w-4 h-4 rounded-full border border-[#8ca8e8]/60 grid place-items-center text-[7px] text-[#8ca8e8]">A</span>
+              <span className="w-4 h-4 rounded-full border border-[#c8f03c]/60 grid place-items-center text-[7px] text-[#c8f03c]">A</span>
               <div className="relative flex-1 mx-2 h-px bg-white/10">
-                <motion.div className="absolute left-0 top-0 h-px origin-left" style={{ width: '100%', scaleX: p, background: 'linear-gradient(90deg, #8ca8e8, #e8486c)' }} />
-                <motion.div className="absolute -top-[3px] w-[7px] h-[7px] rounded-full bg-[#e8486c] shadow-[0_0_12px_#e8486c]" style={{ left: `calc(${p * 100}% - 3px)` }} />
+                <motion.div className="absolute left-0 top-0 h-px origin-left" style={{ width: '100%', scaleX: p, background: 'linear-gradient(90deg, #c8f03c, #5b8cff, #ff3b5c)' }} />
+                <motion.div className="absolute -top-[3px] w-[7px] h-[7px] rounded-full bg-[#c8f03c] shadow-[0_0_14px_#c8f03c]" style={{ left: `calc(${p * 100}% - 3px)` }} />
               </div>
-              <span className="w-4 h-4 rounded-full border border-[#8ca8e8]/60 grid place-items-center text-[7px] text-[#8ca8e8]">B</span>
+              <span className="w-4 h-4 rounded-full border border-[#c8f03c]/60 grid place-items-center text-[7px] text-[#c8f03c]">B</span>
             </div>
 
-            <div className="w-full flex justify-between font-mono text-[11px] tracking-[0.18em] uppercase text-[#9aa6bf]">
+            <div className="w-full flex justify-between font-mono text-[11px] tracking-[0.18em] uppercase text-[#a3a1b5]">
               <AnimatePresence mode="wait">
                 <motion.span key={step} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} transition={{ duration: 0.18 }}>{step}</motion.span>
               </AnimatePresence>
-              <span className="tabular-nums text-[#eef2fa]">{String(Math.round(p * 100)).padStart(3, '0')}%</span>
+              <span className="tabular-nums text-[#f4f1e8]">{String(Math.round(p * 100)).padStart(3, '0')}%</span>
             </div>
           </div>
 
-          <button onClick={() => setLeaving(true)} className="absolute bottom-8 left-1/2 -translate-x-1/2 font-mono text-[10px] uppercase tracking-[0.2em] text-[#64708a] hover:text-[#eef2fa] underline-offset-4 hover:underline">
+          <button onClick={() => setLeaving(true)} className="absolute bottom-8 left-1/2 -translate-x-1/2 font-mono text-[10px] uppercase tracking-[0.2em] text-[#64708a] hover:text-[#f4f1e8] underline-offset-4 hover:underline">
             {T.intro.skip}
           </button>
         </motion.div>

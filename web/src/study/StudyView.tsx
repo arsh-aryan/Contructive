@@ -56,7 +56,7 @@ export default function StudyView() {
   };
 
   return (
-    <div className="absolute inset-0 grid grid-cols-1 lg:grid-cols-[1fr_400px]">
+    <div className="absolute inset-0 grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_400px]">
       <div className="relative min-h-[50vh]">
         <StudyScene L={shownL} isPlan={view === 'plan'} scenario={scenario} geom={geom} labels={{ call: `${T.scenarios.fire} · Ch. 60`, blocked: T.blocked, through: T.through }} />
         <div className="glass absolute top-4 left-4 rounded-xl p-3 flex gap-3 flex-wrap">
@@ -92,7 +92,7 @@ export default function StudyView() {
 
       <motion.aside initial={{ x: 40, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ type: 'spring', stiffness: 160, damping: 22 }}
         className="bg-panel border-l border-line overflow-y-auto px-5 pb-40">
-        <Section title={T.works} aside={<span className="text-accent">{works.length || ''}</span>}>
+        <Section title={T.works} aside={<span className="text-accent-text">{works.length || ''}</span>}>
           <div className="grid gap-2 mb-3">
             <select className="sel w-full" value="" onChange={(e) => {
               if (!e.target.value) return; const [id, v] = e.target.value.split(':');
@@ -114,7 +114,7 @@ export default function StudyView() {
             {works.map((w, i) => (
               <motion.div key={w.id} layout initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20, height: 0, marginBottom: 0 }}
                 className="flex items-center gap-3 bg-card border border-line rounded-lg px-3 py-2.5 mb-2">
-                <span className="w-5 h-5 rounded-full bg-accent/15 text-accent text-[11px] grid place-items-center font-semibold">{i + 1}</span>
+                <span className="w-5 h-5 rounded-full bg-accent/15 text-accent-text text-[11px] grid place-items-center font-semibold">{i + 1}</span>
                 <span className="flex-1"><span className="block lbl !text-[9px]">{T.groups[WORKS[w.id].group]}</span>{workLabel(T, w)}</span>
                 <button aria-label="remove" className="text-faint hover:text-fail hover:bg-fail/10 rounded px-1.5 text-lg leading-none" onClick={() => { s.removeWork(w.id); s.toast(`${T.removed}: ${workLabel(T, w)}`); }}>×</button>
               </motion.div>
@@ -123,21 +123,22 @@ export default function StudyView() {
         </Section>
 
         <Section title={view === 'today' ? T.today : `${T.today} → ${T.plan}`}>
-          {METRIC_DEFS.map(([k, u, d, max, lower]) => {
+          {METRIC_DEFS.map(([k, u, d, max, lower], mi) => {
             const good = (v: number) => Math.max(0, Math.min(100, (lower ? 1 - v / max : v / max) * 100));
             const worse = good(shown[k]) < good(mb[k]) - 0.01;
             return (
-              <div key={k} className="bg-card border border-line rounded-lg p-3 mb-2">
+              <motion.div key={k} initial={{ opacity: 0, y: 14, rotate: -0.6 }} animate={{ opacity: 1, y: 0, rotate: 0 }} transition={{ delay: 0.75 + mi * 0.07, type: 'spring', stiffness: 260, damping: 22 }}
+                whileHover={{ y: -2 }} className="bg-card border-[1.5px] border-line rounded-xl p-3 mb-2 hover:border-ink transition-colors">
                 <div className="flex justify-between items-baseline">
                   <span className="text-muted">{T.metrics[k]}</span>
                   <span>{view === 'plan' && Math.abs(mp[k] - mb[k]) > 1e-9 && <span className="text-faint text-[11px] mr-1.5 num-mono">{mb[k].toFixed(d)} →</span>}
-                    <span className="display text-[22px]"><Num value={shown[k]} d={d} /></span> <span className="text-[11px] text-muted">{u}</span></span>
+                    <span className="display text-[17px]"><Num value={shown[k]} d={d} /></span> <span className="text-[11px] text-muted">{u}</span></span>
                 </div>
                 <div className="relative h-1.5 bg-line rounded mt-2 overflow-hidden">
                   <div className="absolute top-0 bottom-0 w-0.5 bg-faint z-10 transition-all duration-700" style={{ left: `${good(mb[k])}%` }} />
-                  <div className={`absolute left-0 top-0 bottom-0 rounded transition-all duration-700 ${worse ? 'bg-fail' : 'bg-gradient-to-r from-accent-deep to-accent'}`} style={{ width: `${good(shown[k])}%` }} />
+                  <div className={`absolute left-0 top-0 bottom-0 rounded transition-all duration-700 ${worse ? 'bg-fail' : ['bg-gradient-to-r from-blue to-accent', 'bg-gradient-to-r from-accent to-amber', 'bg-gradient-to-r from-crimson to-amber', 'bg-gradient-to-r from-blue to-crimson', 'bg-gradient-to-r from-accent to-blue'][mi]}`} style={{ width: `${good(shown[k])}%` }} />
                 </div>
-              </div>
+              </motion.div>
             );
           })}
         </Section>

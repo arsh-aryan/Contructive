@@ -52,12 +52,15 @@ export function Pill({ sev, children }: { sev: 'fails' | 'marginal' | 'ok'; chil
   return <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full whitespace-nowrap ${c}`}>{children}</span>;
 }
 
+const DOTS = ['bg-accent', 'bg-crimson', 'bg-blue', 'bg-amber'];
+let dotIx = 0;
 export function Section({ title, aside, children }: { title: string; aside?: ReactNode; children: ReactNode }) {
+  const [dot] = useState(() => DOTS[dotIx++ % DOTS.length]);
   return (
-    <section className="mb-5">
-      <h3 className="lbl flex justify-between items-center mb-2 sticky top-0 py-2 bg-panel/95 backdrop-blur z-10"><span>{title}</span>{aside}</h3>
+    <motion.section className="mb-5" initial={{ opacity: 0, y: 10 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}>
+      <h3 className="lbl flex justify-between items-center mb-2 sticky top-0 py-2 bg-panel/95 backdrop-blur z-10"><span className="flex items-center gap-2"><i className={`w-2 h-2 rotate-45 ${dot}`} />{title}</span>{aside}</h3>
       {children}
-    </section>
+    </motion.section>
   );
 }
 
@@ -81,8 +84,8 @@ export function Brand({ size = 'sm', reveal = false }: { size?: 'sm' | 'lg'; rev
   return (
     <span className={`inline-flex items-center ${lg ? 'gap-4' : 'gap-2.5'}`}>
       <Logo size={lg ? 72 : 36} reveal={reveal} />
-      <span className={`font-display font-extrabold uppercase tracking-[0.12em] text-ink ${lg ? 'text-[44px]' : 'text-xl'}`}>Constructive</span>
-      <span className={`rounded-full bg-crimson-soft font-bold uppercase tracking-wider text-crimson ring-1 ring-crimson/30 ${lg ? 'px-2.5 py-1 text-[12px]' : 'px-1.5 py-0.5 text-[10px]'}`}>Civic</span>
+      <span className={`font-display font-extrabold uppercase tracking-[0.01em] text-ink ${lg ? 'text-[44px]' : 'text-xl'}`}>Constructive</span>
+      <span className={`rounded-full bg-accent font-extrabold uppercase tracking-wider text-accent-ink border-2 border-[var(--hard)] -rotate-3 ${lg ? 'px-2.5 py-1 text-[12px]' : 'px-1.5 py-0.5 text-[10px]'}`}>Civic</span>
     </span>
   );
 }
