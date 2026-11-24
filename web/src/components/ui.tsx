@@ -73,3 +73,19 @@ export function Toasts() {
     </div>
   );
 }
+
+/** Product badge: animated mark + uppercase wordmark in a pill. */
+export function Brand({ size = 'sm', data }: { size?: 'sm' | 'lg'; data: object }) {
+  const lg = size === 'lg';
+  return (
+    <motion.div initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}
+      className={`group relative inline-flex items-center rounded-full border border-accent/35 bg-gradient-to-r from-accent/12 via-card to-card shadow-[0_0_0_1px_rgba(45,212,191,.06),0_8px_28px_rgba(45,212,191,.12)] overflow-hidden ${lg ? 'gap-4 pl-3 pr-8 py-3' : 'gap-2 pl-1.5 pr-4 py-1'}`}>
+      {/* sheen sweeping across the badge */}
+      <motion.span aria-hidden className="pointer-events-none absolute inset-y-0 -left-1/3 w-1/3 bg-gradient-to-r from-transparent via-white/10 to-transparent skew-x-[-20deg]"
+        animate={{ x: ['0%', '420%'] }} transition={{ duration: 2.6, repeat: Infinity, repeatDelay: 3.5, ease: 'easeInOut' }} />
+      <LottieIcon data={data} className={lg ? 'w-20 h-20' : 'w-9 h-9'} />
+      <span className={`display uppercase !tracking-[0.06em] ${lg ? 'text-[40px]' : 'text-[17px]'}`}>Constructive</span>
+      <span className={`lbl !text-accent border border-accent/40 rounded-full ${lg ? 'px-2.5 py-1 !text-[11px]' : 'px-1.5 py-0.5 !text-[9px]'}`}>Beta</span>
+    </motion.div>
+  );
+}

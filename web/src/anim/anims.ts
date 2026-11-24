@@ -5,7 +5,7 @@
 const rgb = (hex) => [((hex >> 16) & 255) / 255, ((hex >> 8) & 255) / 255, (hex & 255) / 255, 1];
 const S = (v) => ({ a: 0, k: v });
 const ease = { i: { x: [0.33], y: [1] }, o: { x: [0.67], y: [0] } };
-const K = (frames) => ({ a: 1, k: frames.map(([t, s], i) => (i < frames.length - 1 ? { t, s, ...ease } : { t, s })) });
+const K = (frames) => ({ a: 1, k: frames.map(([t, v], i) => { const s = Array.isArray(v) ? v : [v]; return i < frames.length - 1 ? { t, s, ...ease } : { t, s }; }) });
 
 function tr({ p = [0, 0], a = [0, 0], s = [100, 100], r = 0, o = 100 } = {}) {
   const v = (x) => (x && x.a !== undefined ? x : S(x));
@@ -70,4 +70,38 @@ export function rainAnim(color = 0x4a86b5) {
     p: K([[d, [x, 10, 0]], [d + 24, [x, 90, 0]]]),
     o: K([[d, 0], [d + 4, 100], [d + 20, 100], [d + 24, 0]]),
   })), 48);
+}
+
+// Constructive logo: a "C" drawn as a road ring, three buildings rise inside it,
+// a teal pulse runs round the ring, then it settles. 120 frames @30fps.
+export function logoAnim() {
+  const teal = 0x2dd4bf, ink = 0xeef2f1, deep = 0x0f8b8d;
+  const arc = {
+    ty: 'gr', it: [
+      { ty: 'el', d: 1, p: S([0, 0]), s: S([74, 74]) },
+      { ty: 'tm', s: S(0), e: K([[0, 0], [22, 80]]), o: S(0), m: 1 },
+      { ty: 'st', c: S(rgb(ink)), o: S(100), w: S(9), lc: 2, lj: 2 },
+      tr({ r: 135 }),
+    ],
+  };
+  const pulse = {
+    ty: 'gr', it: [
+      { ty: 'el', d: 1, p: S([0, 0]), s: S([74, 74]) },
+      { ty: 'tm', s: K([[30, 0], [70, 80], [120, 80]]), e: K([[30, 6], [70, 80], [120, 80]]), o: S(0), m: 1 },
+      { ty: 'st', c: S(rgb(teal)), o: S(100), w: S(9), lc: 2, lj: 2 },
+      tr({ r: 135 }),
+    ],
+  };
+  const bar = (ind, x, h, color, t0) => layer(ind, [{ ty: 'gr', it: [{ ty: 'rc', d: 1, p: S([0, -h / 2]), s: S([9, h]), r: S(1.5) }, { ty: 'fl', c: S(rgb(color)), o: S(100), r: 1 }, tr()] }], {
+    p: [x, 66, 0],
+    s: K([[t0, [100, 0, 100]], [t0 + 14, [100, 112, 100]], [t0 + 20, [100, 100, 100]], [120, [100, 100, 100]]]),
+  }, 120);
+  return doc([
+    layer(1, [pulse], {}, 120),
+    layer(2, [arc], {}, 120),
+    bar(3, 38, 22, deep, 14),
+    bar(4, 50, 36, teal, 18),
+    bar(5, 62, 28, ink, 22),
+    layer(6, [rect(34, 3, 0x66767a, 1)], { p: [50, 67, 0], o: K([[10, 0], [18, 100]]) }, 120),
+  ], 120);
 }
