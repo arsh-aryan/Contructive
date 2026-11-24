@@ -9,6 +9,54 @@ import type { Scenario } from '../store/useApp';
 import { pointAt, sampleLine, type StudyGeometry, type XZ } from './geometry';
 import { usePalette } from '../theme';
 
+// Facade texture: one floor (3.2 m) tall, 3 m wide bay, window + slab band.
+let facadeTex: THREE.CanvasTexture | null = null;
+function facade() {
+  if (facadeTex) return facadeTex;
+  const c = document.createElement('canvas'); c.width = 96; c.height = 102; const x = c.getContext('2d')!;
+  x.fillStyle = '#ffffff'; x.fillRect(0, 0, 96, 102);
+  x.fillStyle = '#d9d4cc'; x.fillRect(0, 92, 96, 10);            // floor slab band
+  x.fillStyle = '#3c4654'; x.fillRect(22, 26, 52, 50);            // window
+  x.fillStyle = '#6d7a8a'; x.fillRect(22, 26, 52, 8);             // chajja shadow / lintel
+  x.fillStyle = '#c9c2b6'; x.fillRect(46, 34, 4, 42);             // mullion
+  facadeTex = new THREE.CanvasTexture(c);
+  facadeTex.wrapS = facadeTex.wrapT = THREE.RepeatWrapping;
+  facadeTex.repeat.set(1 / 3, 1 / 3.2); facadeTex.anisotropy = 8; facadeTex.colorSpace = THREE.SRGBColorSpace;
+  return facadeTex;
+}
+// Indian roofs: parapet + black water tank on a share of buildings.
+const rnd = (n: number) => { const v = Math.sin(n * 12.9898) * 43758.5453; return v - Math.floor(v); };
+
+const FACADES = ['#e9dcc4', '#f1c9a5', '#d9e3d0', '#efe3a8', '#e7c7c7', '#cfdbe6', '#f3efe8'];
+function Building({ ring, height, color, id, varied }: { ring: XZ[]; height: number; color: string; id: number; varied: boolean }) {
+  const geo = useMemo(() => new THREE.ExtrudeGeometry(shapeOf(ring), { depth: height, bevelEnabled: false }), [ring, height]);
+  const parapet = useMemo(() => {
+    const sh = shapeOf(ring); const hole = new THREE.Path(); // inset ring for the parapet hole
+    const cx = ring.reduce((a, p) => a + p[0], 0) / ring.length, cz = ring.reduce((a, p) => a + p[1], 0) / ring.length;
+    ring.forEach(([x, z], i) => { const ix = cx + (x - cx) * 0.92, iz = cz + (z - cz) * 0.92; if (i) hole.lineTo(ix, -iz); else hole.moveTo(ix, -iz); });
+    sh.holes.push(hole);
+    return new THREE.ExtrudeGeometry(sh, { depth: 0.9, bevelEnabled: false });
+  }, [ring]);
+  useEffect(() => () => { geo.dispose(); parapet.dispose(); }, [geo, parapet]);
+  const tank = rnd(id) < 0.45 && height > 5 && ring.length > 3;
+  const cx = ring.reduce((a, p) => a + p[0], 0) / ring.length, cz = ring.reduce((a, p) => a + p[1], 0) / ring.length;
+  const tint = useMemo(() => new THREE.Color(color).lerp(new THREE.Color(FACADES[Math.floor(rnd(id + 11) * FACADES.length)]), varied ? 0.45 : 0).offsetHSL((rnd(id + 7) - 0.5) * 0.04, (rnd(id + 3) - 0.5) * 0.12, (rnd(id + 5) - 0.5) * 0.1), [color, id, varied]);
+  return (
+    <group>
+      <mesh geometry={geo} rotation={[-Math.PI / 2, 0, 0]} castShadow receiveShadow>
+        <meshStandardMaterial attach="material-0" color={tint} roughness={0.9} />
+        <meshStandardMaterial attach="material-1" color={tint} map={height >= 4 ? facade() : null} roughness={0.8} />
+      </mesh>
+      <mesh geometry={parapet} rotation={[-Math.PI / 2, 0, 0]} position={[0, height, 0]} castShadow>
+        <meshStandardMaterial color={tint} roughness={0.9} />
+      </mesh>
+      {tank && <mesh position={[cx + (rnd(id + 1) - 0.5) * 2, height + 1.1, cz + (rnd(id + 2) - 0.5) * 2]} castShadow>
+        <cylinderGeometry args={[0.75, 0.75, 1.5, 14]} /><meshStandardMaterial color="#1c1c1f" roughness={0.6} />
+      </mesh>}
+    </group>
+  );
+}
+
 const shapeOf = (ring: XZ[]) => new THREE.Shape(ring.map(([x, z]) => new THREE.Vector2(x, -z)));
 
 function Extruded({ ring, height, color, opacity = 1, emissive, y = 0 }: { ring: XZ[]; height: number; color: string; opacity?: number; emissive?: string; y?: number }) {
@@ -97,7 +145,7 @@ export default function RealArea({ g, L, isPlan, scenario, labels }: Props) {
       <group ref={group}>
         {/* real buildings */}
         {g.buildings.filter((b) => b.ring.length > 2).map((b) => (
-          <Extruded key={b.id} ring={b.ring} height={Math.max(3, b.height)}
+          <Building key={b.id} id={b.id} ring={b.ring} height={Math.max(3, b.height)} varied={!(isPlan && (b.capped || b.affected))}
             color={isPlan && (b.capped || b.affected) ? S.bldChanged : b.estimated ? S.bldEst : S.bld} />
         ))}
         {/* parts removed by the setback, shown as red ghosts */}

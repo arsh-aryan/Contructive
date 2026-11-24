@@ -2,7 +2,7 @@
 
 Pre-feasibility street redevelopment for Indian cities. Build for Bharat, Track 5 (Smarter Cities & Civic Infrastructure).
 
-Pick any of 90+ Indian cities → the 3D city loads → click a street → Constructive reads that 250 m area from OpenStreetMap, flags problems (fire-tender access, drainage, density, heat) and ranks possible works → open the 3D street study to test them under fire and monsoon scenarios → save & share the proposal, export a DPR PDF.
+Pick any of 154 Indian cities and districts across 34 states and UTs, or pan to any street in India → the 3D city loads → click a street → Constructive reads that 250 m area from Overture Maps building footprints and OpenStreetMap streets, flags problems (fire-tender access, drainage, density, heat) and ranks possible works → open the 3D street study to test them under fire and monsoon scenarios → save & share the proposal, export a DPR PDF.
 
 > Indicative pre-feasibility only. Screening checks are not a compliance or structural audit. All coefficients are placeholders to be replaced with the local schedule of rates and validated by a planner.
 

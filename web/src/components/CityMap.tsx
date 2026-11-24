@@ -9,6 +9,8 @@ import type { Layer } from '@deck.gl/core';
 import * as turf from '@turf/turf';
 import { useApp } from '../store/useApp';
 import { areaFromTiles } from '../services/tileArea';
+import { registerPmtiles, OVERTURE_SRC, OVERTURE_URL, HEIGHT_EXPR, BASE_EXPR } from '../services/buildings';
+registerPmtiles();
 import { ASSUMPTIONS } from '../model/model';
 import { useT } from '../i18n/strings';
 import { usePalette, type Palette } from '../theme';
@@ -53,20 +55,23 @@ export default function CityMap() {
   const addLayers = (force = false) => {
     const map = ref.current?.getMap(); if (!map || (!force && !map.isStyleLoaded())) return;
     if (import.meta.env.DEV) (window as unknown as { __map: unknown }).__map = map;
-    // 3D buildings from OpenMapTiles 'building' layer for every city
+    // 3D buildings: Overture Maps footprints (OSM + Google + Microsoft), real heights where known
     if (map.getLayer('c-3d-buildings')) map.removeLayer('c-3d-buildings');
-    {
-      const src = Object.keys(map.getStyle().sources).find((s) => (map.getStyle().sources[s] as { type: string }).type === 'vector') ?? 'openmaptiles';
-      map.addLayer({
-        id: 'c-3d-buildings', type: 'fill-extrusion', source: src, 'source-layer': 'building', minzoom: 13,
-        paint: {
-          'fill-extrusion-color': ['interpolate', ['linear'], ['coalesce', ['get', 'render_height'], 8], 0, P.buildingRamp[0], 15, P.buildingRamp[1], 40, P.buildingRamp[2]],
-          'fill-extrusion-height': ['interpolate', ['linear'], ['zoom'], 13, 0, 14.5, ['coalesce', ['get', 'render_height'], 8]],
-          'fill-extrusion-base': ['coalesce', ['get', 'render_min_height'], 0],
-          'fill-extrusion-opacity': 0.95,
-        },
-      });
-    }
+    if (!map.getSource(OVERTURE_SRC)) map.addSource(OVERTURE_SRC, { type: 'vector', url: OVERTURE_URL, attribution: '© Overture Maps Foundation' });
+    // hide the style's own flat OSM building layers (Overture replaces them)
+    for (const l of map.getStyle().layers) if ((l as { 'source-layer'?: string })['source-layer'] === 'building' && l.id !== 'c-3d-buildings') map.setLayoutProperty(l.id, 'visibility', 'none');
+    map.addLayer({
+      id: 'c-3d-buildings', type: 'fill-extrusion', source: OVERTURE_SRC, 'source-layer': 'building', minzoom: 13,
+      filter: ['!=', ['get', 'is_underground'], true],
+      paint: {
+        'fill-extrusion-color': ['interpolate', ['linear'], HEIGHT_EXPR as never, 0, P.buildingRamp[0], 15, P.buildingRamp[1], 40, P.buildingRamp[2]],
+        'fill-extrusion-height': ['interpolate', ['linear'], ['zoom'], 13, 0, 14.5, HEIGHT_EXPR as never],
+        'fill-extrusion-base': BASE_EXPR as never,
+        'fill-extrusion-opacity': 0.96,
+        'fill-extrusion-vertical-gradient': true,
+      },
+    });
+    map.setLight?.({ anchor: 'map', position: [1.4, 210, 40], intensity: 0.42, color: '#ffffff' });
     map.setSky?.({ 'sky-color': P.sky.sky, 'horizon-color': P.sky.horizon, 'fog-color': P.sky.fog, 'sky-horizon-blend': 0.6, 'horizon-fog-blend': 0.7, 'fog-ground-blend': 0.4 } as never);
   };
   // re-apply after theme (style) changes

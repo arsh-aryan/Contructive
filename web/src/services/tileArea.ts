@@ -6,6 +6,7 @@ import type { Map as MLMap, MapGeoJSONFeature } from 'maplibre-gl';
 import type { Feature, Polygon, LineString } from 'geojson';
 import { gradeSeparation, type AreaData, type StreetProps } from './overpass';
 import { studyStreet } from '../study/geometry';
+import { OVERTURE_SRC, heightOf } from './buildings';
 
 const CLASS_WIDTH: Record<string, number> = {
   motorway: 24, trunk: 18, primary: 14, secondary: 10, tertiary: 7, minor: 5, service: 3.5, track: 3, path: 2, raceway: 8, busway: 7,
@@ -29,17 +30,21 @@ export function areaFromTiles(map: MLMap, lat: number, lng: number, radius = 250
   // Buildings (dedupe tile-split copies by id + rounded centroid)
   const seen = new Set<string>();
   const buildings: AreaData['buildings'] = [];
-  for (const f of q('building')) {
+  const useOv = !!map.getSource(OVERTURE_SRC);
+  const bsrc = useOv ? (map.querySourceFeatures(OVERTURE_SRC, { sourceLayer: 'building' }) as MapGeoJSONFeature[]) : q('building');
+  for (const f of bsrc) {
+    if (f.properties?.is_underground === true) continue;
     const polys = f.geometry.type === 'Polygon' ? [f.geometry.coordinates] : f.geometry.type === 'MultiPolygon' ? f.geometry.coordinates : [];
     for (const rings of polys) {
       const poly = safePoly(rings as number[][][]);
       if (!poly || !within(poly)) continue;
       const c = turf.centroid(poly).geometry.coordinates;
-      const key = `${f.id ?? ''}:${c[0].toFixed(5)},${c[1].toFixed(5)}`;
+      const key = `${f.properties?.id ?? f.id ?? ''}:${c[0].toFixed(5)},${c[1].toFixed(5)}`;
       if (seen.has(key)) continue; seen.add(key);
-      const h = Number(f.properties?.render_height) || 0;
-      const tagged = h > 0 && h !== 5 && h !== 10; // OMT fills untagged with defaults
-      buildings.push(turf.polygon(poly.geometry.coordinates, { levels: tagged ? Math.max(1, Math.round(h / 3.2)) : null, height: h || 9 }) as Feature<Polygon, { levels: number | null; height: number }>);
+      let height: number, levels: number | null;
+      if (useOv) ({ h: height, levels } = heightOf(f.properties));
+      else { const h = Number(f.properties?.render_height) || 0; const tagged = h > 0 && h !== 5 && h !== 10; height = h || 9; levels = tagged ? Math.max(1, Math.round(h / 3.2)) : null; }
+      buildings.push(turf.polygon(poly.geometry.coordinates, { levels, height }) as Feature<Polygon, { levels: number | null; height: number }>);
     }
   }
 
