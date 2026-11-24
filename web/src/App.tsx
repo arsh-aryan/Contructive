@@ -1,14 +1,66 @@
+import { AnimatePresence, motion } from 'framer-motion';
+import { useEffect, useState } from 'react';
 import TopBar from './components/TopBar';
 import CityMap from './components/CityMap';
 import AreaPanel from './components/AreaPanel';
-import { Toasts } from './components/ui';
+import StudyView from './study/StudyView';
+import { LottieIcon, Toasts } from './components/ui';
+import { useApp } from './store/useApp';
+import { loaderAnim } from './anim/anims';
+import { loadProposal } from './services/supabase';
+import { CITIES } from './data/cities';
+import { useT } from './i18n/strings';
 
 export default function App() {
+  const T = useT();
+  const mode = useApp((s) => s.mode);
+  const [booting, setBooting] = useState(true);
+
+  useEffect(() => { const id = setTimeout(() => setBooting(false), 1500); return () => clearTimeout(id); }, []);
+
+  // Shared proposal links: #/p/<id>
+  useEffect(() => {
+    const m = location.hash.match(/^#\/p\/(.+)$/);
+    if (!m) return;
+    loadProposal(m[1]).then((p) => {
+      if (!p) return;
+      const city = CITIES.find((c) => c.name === p.city) ?? useApp.getState().city;
+      useApp.setState({ city, baseline: p.baseline, works: p.works, view: 'plan', mode: 'study', proposalId: m[1] });
+    });
+  }, []);
+
   return (
     <div className="h-full grid grid-rows-[auto_1fr]">
       <TopBar />
-      <main className="relative overflow-hidden"><CityMap /><AreaPanel /></main>
+      <main className="relative overflow-hidden">
+        <div className={`absolute inset-0 transition-opacity duration-500 ${mode === 'city' ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
+          <CityMap />
+          <AreaPanel />
+          <div className="absolute z-20 left-4 bottom-8 glass rounded-lg px-3 py-2 text-[11px] text-muted grid gap-1">
+            <Legend c="#f2705a" t={T.legend.narrow} /><Legend c="#f0b44c" t={T.legend.tight} /><Legend c="#2dd4bf" t={T.legend.ok} />
+            <Legend c="#50a0ff" t={T.legend.drain} /><Legend c="#ff963c" t={T.legend.station} />
+          </div>
+        </div>
+        <AnimatePresence>
+          {mode === 'study' && (
+            <motion.div key="study" className="absolute inset-0 bg-bg" initial={{ opacity: 0, scale: 1.02 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.98 }} transition={{ duration: 0.5 }}>
+              <StudyView />
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </main>
       <Toasts />
+      <AnimatePresence>
+        {booting && (
+          <motion.div className="fixed inset-0 z-[100] bg-bg grid place-items-center" exit={{ opacity: 0 }} transition={{ duration: 0.6 }}>
+            <div className="text-center"><LottieIcon data={loaderAnim()} className="w-36 h-36 mx-auto" /><div className="text-xl font-semibold">Constructive</div><div className="text-muted mt-1">{T.tagline}</div></div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
+}
+
+function Legend({ c, t }: { c: string; t: string }) {
+  return <div className="flex items-center gap-2"><i className="w-3 h-1.5 rounded" style={{ background: c }} />{t}</div>;
 }
