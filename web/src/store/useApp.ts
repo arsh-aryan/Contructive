@@ -1,8 +1,7 @@
 import { create } from 'zustand';
 import type { City } from '../data/cities';
 import { CITIES } from '../data/cities';
-// AreaData comes from services/overpass (added in a later PR)
-type AreaData = import('../model/diagnose').AreaFeatures extends infer F ? { features: F; center: [number, number] } : never;
+import type { AreaData } from '../services/overpass';
 import { DEFAULT_BASELINE, type Levers, type Work } from '../model/model';
 import { baselineFrom } from '../model/diagnose';
 
