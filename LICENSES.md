@@ -11,6 +11,6 @@
 | lottie-web | Airbnb | MIT | All animations authored in `web/src/anim/anims.ts` |
 | jsPDF | parallax | MIT | |
 | Supabase JS | supabase.com | MIT | |
-| Inter, Noto Sans Devanagari | Google Fonts | SIL OFL 1.1 | |
+| Bricolage Grotesque, Plus Jakarta Sans, IBM Plex Mono, Noto Sans Devanagari | Google Fonts | SIL OFL 1.1 | Display, body, labels, Hindi |
 
 All 3D street geometry is generated in code. No third-party 3D models.

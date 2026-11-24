@@ -84,7 +84,7 @@ export default function StudyView() {
             <motion.div key={status.key} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 16 }}
               className={`glass absolute left-4 bottom-4 rounded-xl pl-2 pr-4 py-2 flex items-center gap-3 shadow-2xl border ${status.bad ? 'border-fail/40' : 'border-ok/40'}`}>
               <LottieIcon data={status.anim} className="w-10 h-10" />
-              <div><div className={`font-semibold ${status.bad ? 'text-fail' : 'text-ok'}`}>{status.title}</div><div className="text-[11px] text-muted tnum">{status.sub}</div></div>
+              <div><div className={`display text-[18px] ${status.bad ? 'text-fail' : 'text-ok'}`}>{status.title}</div><div className="text-[11px] text-muted tnum">{status.sub}</div></div>
             </motion.div>
           )}
         </AnimatePresence>
@@ -130,8 +130,8 @@ export default function StudyView() {
               <div key={k} className="bg-card border border-line rounded-lg p-3 mb-2">
                 <div className="flex justify-between items-baseline">
                   <span className="text-muted">{T.metrics[k]}</span>
-                  <span>{view === 'plan' && Math.abs(mp[k] - mb[k]) > 1e-9 && <span className="text-faint text-[11px] mr-1.5 tnum">{mb[k].toFixed(d)} →</span>}
-                    <span className="font-semibold text-[15px]"><Num value={shown[k]} d={d} /></span> <span className="text-[11px] text-muted">{u}</span></span>
+                  <span>{view === 'plan' && Math.abs(mp[k] - mb[k]) > 1e-9 && <span className="text-faint text-[11px] mr-1.5 num-mono">{mb[k].toFixed(d)} →</span>}
+                    <span className="display text-[22px]"><Num value={shown[k]} d={d} /></span> <span className="text-[11px] text-muted">{u}</span></span>
                 </div>
                 <div className="relative h-1.5 bg-[#222b2f] rounded mt-2 overflow-hidden">
                   <div className="absolute top-0 bottom-0 w-0.5 bg-faint z-10 transition-all duration-700" style={{ left: `${good(mb[k])}%` }} />
@@ -146,7 +146,7 @@ export default function StudyView() {
           {shown.checks.map((c) => (
             <div key={c.id} className="flex items-center gap-2 py-2 border-t border-dotted border-line first:border-0">
               <span className="flex-1">{T.checkNames[c.id]}</span>
-              <span className="text-muted text-[12px] tnum">{c.unit ? `${c.value.toFixed(c.unit === 'm' ? 1 : 0)} ${c.unit}` : ''}</span>
+              <span className="text-muted text-[12px] num-mono">{c.unit ? `${c.value.toFixed(c.unit === 'm' ? 1 : 0)} ${c.unit}` : ''}</span>
               <Pill sev={c.pass ? 'ok' : 'fails'}>{c.pass ? T.pass : T.fail}</Pill>
             </div>
           ))}
@@ -166,7 +166,7 @@ export default function StudyView() {
             : (mp.displacement.plotsAffected > 0 && <Chip><b>{mp.displacement.plotsAffected}</b> {T.plots} {mp.displacement.setback.toFixed(1)} m</Chip>)}
         </> : <Chip>—</Chip>}
         <div className="flex-1" />
-        {works.length > 0 && <div className="text-right tnum"><div className="text-[11px] text-muted">{T.metrics.cost} (±40%)</div><div className="font-semibold text-[16px]">₹<Num value={mp.cost.totalCr} d={2} /> Cr</div></div>}
+        {works.length > 0 && <div className="text-right tnum"><div className="text-[11px] text-muted">{T.metrics.cost} (±40%)</div><div className="display text-[24px]">₹<Num value={mp.cost.totalCr} d={2} /> Cr</div></div>}
         <button onClick={share} className="rounded-lg px-4 py-2.5 border border-line hover:bg-card">{T.share}</button>
         <button onClick={() => exportDpr({ city: city.name, place, baseline, works, observations: area ? observe(area.features, baseline) : [], workLabel: (w) => workLabel(T, w) })}
           className="rounded-lg px-4 py-2.5 font-semibold text-[#06201f] bg-accent hover:brightness-110">{T.exportDpr}</button>

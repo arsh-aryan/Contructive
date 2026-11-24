@@ -54,7 +54,7 @@ export function Pill({ sev, children }: { sev: 'fails' | 'marginal' | 'ok'; chil
 export function Section({ title, aside, children }: { title: string; aside?: ReactNode; children: ReactNode }) {
   return (
     <section className="mb-5">
-      <h3 className="lbl font-semibold flex justify-between items-center mb-2 sticky top-0 py-2 bg-panel/95 backdrop-blur z-10"><span>{title}</span>{aside}</h3>
+      <h3 className="lbl flex justify-between items-center mb-2 sticky top-0 py-2 bg-panel/95 backdrop-blur z-10"><span>{title}</span>{aside}</h3>
       {children}
     </section>
   );

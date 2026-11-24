@@ -14,7 +14,7 @@ export default function TopBar() {
     <header className="relative z-30 flex flex-wrap items-end gap-4 px-5 py-3 border-b border-line bg-panel/90 backdrop-blur">
       <div className="flex items-center gap-2.5 self-center mr-2">
         <LottieIcon data={logo} className="w-8 h-8" />
-        <div><div className="font-semibold text-[16px] tracking-tight">Constructive</div><div className="text-[11px] text-muted">{T.tagline}</div></div>
+        <div><div className="display text-[20px]">Constructive</div><div className="text-[11px] text-muted">{T.tagline}</div></div>
       </div>
       <Field label={T.city}>
         <select className="sel min-w-[220px]" value={city.id} onChange={(e) => set({ city: CITIES.find((c) => c.id === e.target.value)!, area: null, point: null, areaStatus: 'idle', mode: 'city', works: [] })}>
