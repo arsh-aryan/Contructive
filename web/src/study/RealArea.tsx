@@ -71,31 +71,31 @@ export default function RealArea({ g, L, isPlan, scenario, labels }: Props) {
     <group>
       {/* site disc */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.01, 0]} receiveShadow>
-        <circleGeometry args={[g.radius + 30, 64]} /><meshStandardMaterial color="#242c2f" roughness={1} />
+        <circleGeometry args={[g.radius + 30, 64]} /><meshStandardMaterial color="#ebe8e1" roughness={1} />
       </mesh>
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.02, 0]}>
-        <ringGeometry args={[g.radius - 0.8, g.radius, 96]} /><meshBasicMaterial color="#2dd4bf" transparent opacity={0.5} />
+        <ringGeometry args={[g.radius - 0.8, g.radius, 96]} /><meshBasicMaterial color="#0f766e" transparent opacity={0.5} />
       </mesh>
 
       {/* streets (real widths), studied lane highlighted */}
       {g.streets.map((s, i) => (
-        <Flat key={i} ring={s.ring} y={s.isStudy ? 0.07 : 0.05} color={s.isStudy ? (isPlan ? '#3d6b66' : '#4a3a36') : '#3a4246'} emissive={s.isStudy ? (isPlan ? '#2dd4bf' : '#f2705a') : undefined} />
+        <Flat key={i} ring={s.ring} y={s.isStudy ? 0.07 : 0.05} color={s.isStudy ? (isPlan ? '#9fd3ca' : '#e9b4a9') : '#d2cdc3'} />
       ))}
-      {g.newCorridors.map((r, i) => <Flat key={`row${i}`} ring={r} y={0.09} color="#2a5a55" emissive="#2dd4bf" />)}
+      {g.newCorridors.map((r, i) => <Flat key={`row${i}`} ring={r} y={0.09} color="#bfe3dc" />)}
 
       <group ref={group}>
         {/* real buildings */}
         {g.buildings.filter((b) => b.ring.length > 2).map((b) => (
           <Extruded key={b.id} ring={b.ring} height={Math.max(3, b.height)}
-            color={isPlan && (b.capped || b.affected) ? '#d7f0ec' : b.estimated ? '#c9c2b6' : '#e2dccf'} />
+            color={isPlan && (b.capped || b.affected) ? '#d9efe9' : b.estimated ? '#f3f0ea' : '#fbfaf7'} />
         ))}
         {/* parts removed by the setback, shown as red ghosts */}
         {isPlan && g.buildings.flatMap((b) => b.cut.map((r, j) => (
-          <Extruded key={`${b.id}-cut-${j}`} ring={r} height={Math.max(3, b.baseHeight)} color="#f2705a" opacity={0.28} emissive="#f2705a" />
+          <Extruded key={`${b.id}-cut-${j}`} ring={r} height={Math.max(3, b.baseHeight)} color="#c0392b" opacity={0.35} />
         )))}
         {/* height cap: ghost of the removed upper floors */}
         {isPlan && g.buildings.filter((b) => b.capped && b.ring.length > 2).map((b) => (
-          <Extruded key={`${b.id}-cap`} ring={b.ring} height={b.baseHeight - b.height} y={b.height} color="#f0b44c" opacity={0.18} />
+          <Extruded key={`${b.id}-cap`} ring={b.ring} height={b.baseHeight - b.height} y={b.height} color="#c48c28" opacity={0.25} />
         ))}
         {/* rooftop solar */}
         {isPlan && L.solar && g.buildings.filter((b) => b.ring.length > 2).slice(0, 120).map((b) => {
@@ -117,13 +117,13 @@ export default function RealArea({ g, L, isPlan, scenario, labels }: Props) {
       )}
       {/* designated vending zone */}
       {isPlan && L.vendor && samples.length > 0 && (
-        <Instances limit={400}><boxGeometry args={[1.4, 0.9, 1.1]} /><meshStandardMaterial color="#c98a4b" emissive="#2dd4bf" emissiveIntensity={0.15} />
+        <Instances limit={400}><boxGeometry args={[1.4, 0.9, 1.1]} /><meshStandardMaterial color="#c98a4b" emissive="#0f766e" emissiveIntensity={0.1} />
           {samples.filter((_, i) => i % 2 === 0).map((s, i) => { const [x, z] = side(s, half - 0.75); return <Instance key={i} position={[x, 0.5, z]} rotation={[0, Math.atan2(-s.dir[1], s.dir[0]), 0]} />; })}
         </Instances>
       )}
       {/* drain along one edge of the lane */}
       {samples.length > 0 && (
-        <Instances limit={400}><boxGeometry args={[6.6, L.drain ? 0.18 : 0.04, 0.8]} /><meshStandardMaterial color={L.drain ? '#8f8a80' : '#121415'} roughness={L.drain ? 0.9 : 0.15} metalness={L.drain ? 0 : 0.5} />
+        <Instances limit={400}><boxGeometry args={[6.6, L.drain ? 0.18 : 0.04, 0.8]} /><meshStandardMaterial color={L.drain ? '#9a958b' : '#4a4843'} roughness={L.drain ? 0.9 : 0.15} metalness={L.drain ? 0 : 0.5} />
           {samples.map((s, i) => { const [x, z] = side(s, -(half - 0.4)); return <Instance key={i} position={[x, 0.12, z]} rotation={[0, Math.atan2(-s.dir[1], s.dir[0]), 0]} />; })}
         </Instances>
       )}
@@ -145,7 +145,7 @@ export default function RealArea({ g, L, isPlan, scenario, labels }: Props) {
 
       {/* lane label */}
       {g.lane.length > 1 && (() => { const m = pointAt(g.lane, g.laneLength / 2).p; return (
-        <Html position={[m[0], 14, m[1]]} center><div className={`whitespace-nowrap text-[11px] font-semibold px-2.5 py-1 rounded-full border ${isPlan ? 'bg-[#0f2f2c] text-accent border-accent/50' : 'bg-[#2f1a16] text-fail border-fail/50'}`}>
+        <Html position={[m[0], 14, m[1]]} center><div className={`whitespace-nowrap text-[11px] font-semibold px-2.5 py-1 rounded-full border ${isPlan ? 'bg-white text-accent border-accent/40' : 'bg-white text-fail border-fail/40'}`}>
           {g.laneName} · {L.width.toFixed(1)} m · clear {clearWidth(L).toFixed(1)} m</div></Html>); })()}
 
       {scenario === 'fire' && g.lane.length > 1 && (

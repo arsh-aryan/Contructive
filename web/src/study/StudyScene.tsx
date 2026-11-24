@@ -12,8 +12,8 @@ import RealArea from './RealArea';
 import type { StudyGeometry } from './geometry';
 
 const C = {
-  ground: '#1a2124', road: '#3a4246', foot: '#56615f', bld: '#d9d4ca', bldOld: '#bdb3a2', cracked: '#7d7a74',
-  accent: '#2dd4bf', stall: '#c98a4b', tarp: '#3f6e9a', drain: '#141617', slab: '#8f8a80', tree: '#4f8a55', trunk: '#6a4b32',
+  ground: '#e8e5de', road: '#cfcac0', foot: '#e2ded5', bld: '#fbfaf7', bldOld: '#efe9de', cracked: '#a8a397',
+  accent: '#0f766e', stall: '#c98a4b', tarp: '#3f6e9a', drain: '#4a4843', slab: '#8f8a80', tree: '#4f8a55', trunk: '#6a4b32',
 };
 
 function rng(seed: number) { let s = seed; return () => (s = (s * 16807) % 2147483647) / 2147483647; }
@@ -55,7 +55,7 @@ function Lane({ L, isPlan, scenario, labels }: Props) {
     <group ref={group}>
       <mesh position={[0, 0.05, 0]} receiveShadow><boxGeometry args={[len, 0.1, L.width]} /><meshStandardMaterial color={C.road} roughness={0.95} /></mesh>
       {fp > 0 && [-1, 1].map((s) => (
-        <mesh key={s} position={[0, 0.14, s * (roadHalf + fp / 2)]} receiveShadow><boxGeometry args={[len, 0.28, fp]} /><meshStandardMaterial color={isPlan ? '#7fd8cc' : C.foot} roughness={0.8} /></mesh>
+        <mesh key={s} position={[0, 0.14, s * (roadHalf + fp / 2)]} receiveShadow><boxGeometry args={[len, 0.28, fp]} /><meshStandardMaterial color={isPlan ? '#cfe9e3' : C.foot} roughness={0.8} /></mesh>
       ))}
       {/* drain */}
       {L.drain
@@ -65,14 +65,14 @@ function Lane({ L, isPlan, scenario, labels }: Props) {
       {plots.map((p, i) => {
         const h = p.floors * 3.1, w = A.plotFrontage - 0.6, z = p.s * (setback + A.plotDepth / 2);
         const changed = isPlan && (p.floors < p.today || (L.retrofit && p.cracked));
-        const color = changed ? '#e6f7f4' : !isPlan && p.cracked ? C.cracked : p.tone < 0.5 ? C.bld : C.bldOld;
+        const color = changed ? '#d9efe9' : !isPlan && p.cracked ? C.cracked : p.tone < 0.5 ? C.bld : C.bldOld;
         return (
           <group key={i} position={[p.x, 0, z]}>
             <mesh position={[0, h / 2, 0]} castShadow receiveShadow><boxGeometry args={[w, h, A.plotDepth]} /><meshStandardMaterial color={color} roughness={0.85} /></mesh>
             {/* windows: emissive strips, catch bloom at dusk */}
             {Array.from({ length: p.floors - 1 }, (_, f) => (
               <mesh key={f} position={[0, 3.1 * (f + 1) + 1.4, -p.s * (A.plotDepth / 2 + 0.01)]}><planeGeometry args={[w * 0.7, 0.9]} />
-                <meshStandardMaterial color="#1c2a2c" emissive="#ffcf8a" emissiveIntensity={(i + f) % 3 === 0 ? 1.6 : 0.05} side={THREE.DoubleSide} /></mesh>
+                <meshStandardMaterial color="#c9d3d6" emissive="#ffcf8a" emissiveIntensity={0} side={THREE.DoubleSide} /></mesh>
             ))}
             <mesh position={[0, 1.2, -p.s * (A.plotDepth / 2 + 0.02)]}><planeGeometry args={[w * 0.75, 2.2]} /><meshStandardMaterial color="#5b544b" side={THREE.DoubleSide} /></mesh>
             {changed && L.retrofit && p.cracked && <mesh position={[0, h - 0.2, 0]}><boxGeometry args={[w + 0.12, 0.35, A.plotDepth + 0.12]} /><meshStandardMaterial color={C.accent} emissive={C.accent} emissiveIntensity={1.4} /></mesh>}
@@ -115,7 +115,7 @@ function Lane({ L, isPlan, scenario, labels }: Props) {
           <Html position={[0, 6, 0]} center><div className={`whitespace-nowrap text-[11px] font-semibold px-2.5 py-1 rounded-full text-white ${blocked ? 'bg-fail' : 'bg-ok'}`}>{blocked ? labels.blocked : labels.through}</div></Html>
         </group>
         <mesh position={[0, 1.5, 0]}><coneGeometry args={[1, 3, 12]} /><meshStandardMaterial color="#ff7b2c" emissive="#ff5a1f" emissiveIntensity={4} /></mesh>
-        <Html position={[0, 5, 0]} center><div className="whitespace-nowrap text-[11px] px-2.5 py-1 rounded-full bg-[#3a2416] text-[#ffb27a] border border-[#ff7b2c]/50">{labels.call}</div></Html>
+        <Html position={[0, 5, 0]} center><div className="whitespace-nowrap text-[11px] px-2.5 py-1 rounded-full bg-white text-[#b4531a] border border-[#b4531a]/40">{labels.call}</div></Html>
       </>}
       {[0, 30, 60, 90, 120].map((ch) => <Html key={ch} position={[-half + ch, 0.3, setback + A.plotDepth + 3]} center><div className="text-[10px] text-muted tnum">Ch. {ch}</div></Html>)}
     </group>
@@ -154,10 +154,10 @@ export default function StudyScene({ L, isPlan, scenario, labels, geom }: Props)
   const monsoon = scenario === 'monsoon';
   return (
     <Canvas shadows dpr={[1, 2]} camera={{ position: geom ? [-210, 190, 210] : [-95, 70, 55], fov: 38, near: 0.5, far: 3000 }} gl={{ antialias: false, powerPreference: 'high-performance' }}>
-      <color attach="background" args={[monsoon ? '#273138' : '#0e1113']} />
-      <fog attach="fog" args={[monsoon ? '#273138' : '#0e1113', geom ? 350 : 140, geom ? 900 : 360]} />
+      <color attach="background" args={[monsoon ? '#dfe3e6' : '#f5f3ee']} />
+      <fog attach="fog" args={[monsoon ? '#dfe3e6' : '#f5f3ee', geom ? 350 : 140, geom ? 900 : 360]} />
       <Sky distance={4500} sunPosition={monsoon ? [0, 0.05, -1] : [-60, 18, 30]} turbidity={monsoon ? 18 : 6} rayleigh={monsoon ? 4 : 1.2} />
-      <hemisphereLight args={['#dfe9ff', '#2a2420', monsoon ? 0.6 : 0.9]} />
+      <hemisphereLight args={['#ffffff', '#d8d2c6', monsoon ? 1.0 : 1.3]} />
       <directionalLight position={geom ? [-180, 260, 120] : [-50, 70, 35]} intensity={monsoon ? 0.8 : 2.4} color="#ffe3c0" castShadow shadow-mapSize={[2048, 2048]}
         shadow-camera-left={geom ? -300 : -90} shadow-camera-right={geom ? 300 : 90} shadow-camera-top={geom ? 300 : 90} shadow-camera-bottom={geom ? -300 : -90} shadow-camera-far={1000} shadow-bias={-0.0004} />
       <Environment resolution={256}>
@@ -177,9 +177,9 @@ export default function StudyScene({ L, isPlan, scenario, labels, geom }: Props)
       <Rig scenario={scenario} geom={geom} />
       <EffectComposer multisampling={0}>
         <N8AO aoRadius={geom ? 6 : 3} intensity={2.2} distanceFalloff={1} halfRes />
-        <Bloom mipmapBlur luminanceThreshold={1} intensity={0.9} />
+        <Bloom mipmapBlur luminanceThreshold={1.2} intensity={0.4} />
         <ToneMapping mode={ToneMappingMode.AGX} />
-        <Vignette offset={0.3} darkness={0.55} />
+        <Vignette offset={0.4} darkness={0.18} />
         <SMAA />
       </EffectComposer>
     </Canvas>

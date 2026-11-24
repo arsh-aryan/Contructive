@@ -67,9 +67,20 @@ export function Toasts() {
       <AnimatePresence>
         {toasts.map((t) => (
           <motion.div key={t.id} initial={{ opacity: 0, y: 12, scale: .96 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 12 }}
-            className="glass rounded-lg px-4 py-2.5 shadow-2xl max-w-sm">{t.text}</motion.div>
+            className="glass rounded-lg px-4 py-2.5 max-w-sm">{t.text}</motion.div>
         ))}
       </AnimatePresence>
+    </div>
+  );
+}
+
+/** Product mark: animated logo + uppercase wordmark set in a flat label. */
+export function Brand({ size = 'sm', data }: { size?: 'sm' | 'lg'; data: object }) {
+  const lg = size === 'lg';
+  return (
+    <div className={`inline-flex items-center ${lg ? 'gap-4' : 'gap-2'}`}>
+      <LottieIcon data={data} className={lg ? 'w-20 h-20' : 'w-9 h-9'} />
+      <span className={`display uppercase !tracking-[0.08em] bg-ink text-bg rounded-[4px] ${lg ? 'text-[38px] px-4 py-1.5' : 'text-[15px] px-2.5 py-1'}`}>Constructive</span>
     </div>
   );
 }

@@ -1,20 +1,20 @@
 import { useApp, type Lang, type Role } from '../store/useApp';
 import { CITIES, STATES } from '../data/cities';
 import { useT } from '../i18n/strings';
-import { Field, LottieIcon } from './ui';
-import { loaderAnim } from '../anim/anims';
+import { Brand, Field } from './ui';
+import { logoAnim } from '../anim/anims';
 import { backendLabel } from '../services/supabase';
 import { useMemo } from 'react';
 
 export default function TopBar() {
   const T = useT();
   const { lang, role, city, mode, set } = useApp();
-  const logo = useMemo(() => loaderAnim(), []);
+  const logo = useMemo(() => logoAnim(), []);
   return (
     <header className="relative z-30 flex flex-wrap items-end gap-4 px-5 py-3 border-b border-line bg-panel/90 backdrop-blur">
-      <div className="flex items-center gap-2.5 self-center mr-2">
-        <LottieIcon data={logo} className="w-8 h-8" />
-        <div><div className="display text-[20px]">Constructive</div><div className="text-[11px] text-muted">{T.tagline}</div></div>
+      <div className="flex items-center gap-3 self-center mr-2">
+        <Brand data={logo} />
+        <div className="hidden xl:block text-[11px] text-muted max-w-[150px] leading-tight">{T.tagline}</div>
       </div>
       <Field label={T.city}>
         <select className="sel min-w-[220px]" value={city.id} onChange={(e) => set({ city: CITIES.find((c) => c.id === e.target.value)!, area: null, point: null, areaStatus: 'idle', mode: 'city', works: [] })}>
