@@ -29,7 +29,7 @@ const doc = (layers, op = 60, w = 100, h = 100) => ({ v: '5.7.4', fr: 30, ip: 0,
 
 // Buildings rising, staggered — used by the loader.
 export function loaderAnim() {
-  const cols = [0x0f766e, 0x1f1d1a, 0x0f766e, 0xa29d93, 0x0f766e];
+  const cols = [0x1b2a4a, 0xb0143c, 0x1b2a4a, 0x9aa3b2, 0x1b2a4a];
   const heights = [34, 52, 26, 60, 40];
   const layers = heights.map((h, i) => {
     const x = 18 + i * 16, t0 = i * 4;
@@ -43,7 +43,7 @@ export function loaderAnim() {
 }
 
 // Expanding siren ring — fire tender blocked.
-export function sirenAnim(color = 0xb93a2b) {
+export function sirenAnim(color = 0xb0143c) {
   const ringL = (ind, delay) => layer(ind, [ring(30, color, 5)], {
     s: K([[delay, [40, 40, 100]], [delay + 30, [100, 100, 100]]]),
     o: K([[delay, 100], [delay + 30, 0]]),
@@ -52,7 +52,7 @@ export function sirenAnim(color = 0xb93a2b) {
 }
 
 // Check pulse — fire tender through.
-export function okAnim(color = 0x3d7a4a) {
+export function okAnim(color = 0x23704f) {
   const tick = { ty: 'gr', it: [
     { ty: 'sh', d: 1, ks: S({ i: [[0, 0], [0, 0], [0, 0]], o: [[0, 0], [0, 0], [0, 0]], v: [[-12, 0], [-3, 9], [13, -9]], c: false }) },
     { ty: 'tm', s: S(0), e: K([[4, 0], [20, 100]]), o: S(0), m: 1 },
@@ -64,7 +64,7 @@ export function okAnim(color = 0x3d7a4a) {
 }
 
 // Falling drops — monsoon.
-export function rainAnim(color = 0x2f6f9f) {
+export function rainAnim(color = 0x2c6eaa) {
   const drops = [[30, 0], [50, 8], [70, 4], [40, 14], [60, 18]];
   return doc(drops.map(([x, d], i) => layer(i + 1, [{ ty: 'gr', it: [{ ty: 'rc', d: 1, p: S([0, 0]), s: S([4, 14]), r: S(2) }, { ty: 'fl', c: S(rgb(color)), o: S(100), r: 1 }, tr()] }], {
     p: K([[d, [x, 10, 0]], [d + 24, [x, 90, 0]]]),

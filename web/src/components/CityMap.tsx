@@ -11,8 +11,8 @@ import { useApp } from '../store/useApp';
 import { areaFromTiles } from '../services/tileArea';
 import { ASSUMPTIONS } from '../model/model';
 import { useT } from '../i18n/strings';
+import { usePalette, type Palette } from '../theme';
 
-const STYLE = 'https://tiles.openfreemap.org/styles/positron';
 
 function DeckOverlay({ layers }: { layers: Layer[] }) {
   const overlay = useControl(() => new MapboxOverlay({ interleaved: false, layers: [] }));
@@ -21,14 +21,16 @@ function DeckOverlay({ layers }: { layers: Layer[] }) {
   return null;
 }
 
-const widthColor = (w: number): [number, number, number] =>
-  w < ASSUMPTIONS.fireTenderClear + 0.6 ? [185, 58, 43] : w < 5.5 ? [196, 140, 40] : [15, 118, 110];
+const widthColor = (P: Palette, w: number): [number, number, number] =>
+  w < ASSUMPTIONS.fireTenderClear + 0.6 ? P.narrow : w < 5.5 ? P.tight : P.clear;
+type Street = { geometry: { coordinates: number[][] }; properties: { width: number; bridge?: boolean; nh?: boolean } };
 
 export default function CityMap() {
   const T = useT();
   const ref = useRef<MapRef>(null);
   const { city, area, point, areaStatus, set, setArea, toast } = useApp();
   const [t, setT] = useState(0);
+  const P = usePalette();
 
   // animation clock for pulses
   useEffect(() => {
@@ -48,24 +50,34 @@ export default function CityMap() {
     if (area) ref.current?.flyTo({ center: area.center, zoom: 17.2, pitch: 66, bearing: -35, duration: 2200 });
   }, [area]);
 
-  const onLoad = () => {
-    const map = ref.current?.getMap(); if (!map) return;
+  const addLayers = (force = false) => {
+    const map = ref.current?.getMap(); if (!map || (!force && !map.isStyleLoaded())) return;
     if (import.meta.env.DEV) (window as unknown as { __map: unknown }).__map = map;
     // 3D buildings from OpenMapTiles 'building' layer for every city
-    if (!map.getLayer('c-3d-buildings')) {
+    if (map.getLayer('c-3d-buildings')) map.removeLayer('c-3d-buildings');
+    {
       const src = Object.keys(map.getStyle().sources).find((s) => (map.getStyle().sources[s] as { type: string }).type === 'vector') ?? 'openmaptiles';
       map.addLayer({
         id: 'c-3d-buildings', type: 'fill-extrusion', source: src, 'source-layer': 'building', minzoom: 13,
         paint: {
-          'fill-extrusion-color': ['interpolate', ['linear'], ['coalesce', ['get', 'render_height'], 8], 0, '#ece8df', 15, '#e2ddd2', 40, '#d3ccbf'],
+          'fill-extrusion-color': ['interpolate', ['linear'], ['coalesce', ['get', 'render_height'], 8], 0, P.buildingRamp[0], 15, P.buildingRamp[1], 40, P.buildingRamp[2]],
           'fill-extrusion-height': ['interpolate', ['linear'], ['zoom'], 13, 0, 14.5, ['coalesce', ['get', 'render_height'], 8]],
           'fill-extrusion-base': ['coalesce', ['get', 'render_min_height'], 0],
           'fill-extrusion-opacity': 0.95,
         },
       });
     }
-    map.setSky?.({ 'sky-color': '#eef1f3', 'horizon-color': '#f5f3ee', 'fog-color': '#f5f3ee', 'sky-horizon-blend': 0.6, 'horizon-fog-blend': 0.7, 'fog-ground-blend': 0.4 } as never);
+    map.setSky?.({ 'sky-color': P.sky.sky, 'horizon-color': P.sky.horizon, 'fog-color': P.sky.fog, 'sky-horizon-blend': 0.6, 'horizon-fog-blend': 0.7, 'fog-ground-blend': 0.4 } as never);
   };
+  // re-apply after theme (style) changes
+  useEffect(() => {
+    const map = ref.current?.getMap(); if (!map) return;
+    const h = () => addLayers(true);
+    map.on('style.load', h);
+    if (map.isStyleLoaded()) addLayers();
+    return () => { map.off('style.load', h); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [P]);
 
   const onClick = async (e: { lngLat: { lng: number; lat: number } }) => {
     if (areaStatus === 'loading') return;
@@ -84,7 +96,7 @@ export default function CityMap() {
     if (point) {
       const pulse = (t % 1.6) / 1.6;
       L.push(new ScatterplotLayer({ id: 'scan', data: [point], getPosition: (d) => d, radiusUnits: 'meters', getRadius: areaStatus === 'loading' ? 40 + pulse * 260 : 250,
-        stroked: true, filled: true, getFillColor: [15, 118, 110, areaStatus === 'loading' ? 40 * (1 - pulse) : 12], getLineColor: [15, 118, 110, areaStatus === 'loading' ? 255 * (1 - pulse) : 170], lineWidthMinPixels: 1.5,
+        stroked: true, filled: true, getFillColor: [...P.scan, areaStatus === 'loading' ? 40 * (1 - pulse) : 12], getLineColor: [...P.scan, areaStatus === 'loading' ? 255 * (1 - pulse) : 170], lineWidthMinPixels: 1.5,
         updateTriggers: { getRadius: t, getFillColor: t, getLineColor: t } }));
     }
     if (area) {
@@ -93,34 +105,42 @@ export default function CityMap() {
         id: 'bld', data: area.buildings, extruded: true, wireframe: true, pickable: true,
         getPolygon: (f) => (f as typeof area.buildings[number]).geometry.coordinates as any,
         getElevation: (f) => (f as typeof area.buildings[number]).properties.height,
-        getFillColor: (f) => { const k = (f as typeof area.buildings[number]).properties.height / maxH; return [Math.round(238 - 60 * k), Math.round(232 - 90 * k), Math.round(222 - 110 * k), 240]; },
-        getLineColor: [120, 110, 95, 60], material: { ambient: 0.55, diffuse: 0.55, shininess: 20, specularColor: [40, 40, 40] },
+        getFillColor: (f) => { const k = (f as typeof area.buildings[number]).properties.height / maxH; return [0, 1, 2].map((c) => Math.round(P.bldLow[c] + (P.bldHigh[c] - P.bldLow[c]) * k)).concat(240) as [number, number, number, number]; },
+        getLineColor: P.bldEdge, material: { ambient: 0.55, diffuse: 0.55, shininess: 20, specularColor: [40, 40, 40] },
         transitions: { getElevation: { duration: 1200, enter: () => [0] } },
       }));
-      L.push(new PathLayer({ id: 'streets-glow', data: area.streets, getPath: (f) => (f as typeof area.streets[number]).geometry.coordinates as any,
-        getWidth: (f) => (f as typeof area.streets[number]).properties.width * 0.5 + 2.5, widthUnits: 'meters', getColor: (f) => [...widthColor((f as typeof area.streets[number]).properties.width), 50], capRounded: true, jointRounded: true }));
-      L.push(new PathLayer({ id: 'streets', data: area.streets, getPath: (f) => (f as typeof area.streets[number]).geometry.coordinates as any, pickable: true,
-        getWidth: (f) => (f as typeof area.streets[number]).properties.width * 0.45, widthUnits: 'meters', widthMinPixels: 1.5, getColor: (f) => [...widthColor((f as typeof area.streets[number]).properties.width), 230], capRounded: true, jointRounded: true }));
+      const ground = area.streets.filter((s) => !s.properties.bridge);
+      const fly = area.streets.filter((s) => s.properties.bridge);
+      const nh = area.streets.filter((s) => s.properties.nh && !s.properties.bridge);
+      L.push(new PathLayer({ id: 'nh', data: nh, getPath: (f) => (f as Street).geometry.coordinates as any,
+        getWidth: (f) => (f as Street).properties.width + 5, widthUnits: 'meters', getColor: [...P.nh, 70], capRounded: true, jointRounded: true }));
+      L.push(new PathLayer({ id: 'streets-glow', data: ground, getPath: (f) => (f as typeof area.streets[number]).geometry.coordinates as any,
+        getWidth: (f) => (f as typeof area.streets[number]).properties.width * 0.5 + 2.5, widthUnits: 'meters', getColor: (f) => [...widthColor(P, (f as typeof area.streets[number]).properties.width), 50], capRounded: true, jointRounded: true }));
+      L.push(new PathLayer({ id: 'streets', data: ground, getPath: (f) => (f as typeof area.streets[number]).geometry.coordinates as any, pickable: true,
+        getWidth: (f) => (f as typeof area.streets[number]).properties.width * 0.45, widthUnits: 'meters', widthMinPixels: 1.5, getColor: (f) => [...widthColor(P, (f as typeof area.streets[number]).properties.width), 230], capRounded: true, jointRounded: true }));
       L.push(new PathLayer({ id: 'drains', data: area.drains, getPath: (f) => (f as typeof area.drains[number]).geometry.coordinates as any, getWidth: 2, widthUnits: 'meters', widthMinPixels: 2,
-        getColor: [47, 111, 159, 230], getDashArray: [3, 2] }));
+        getColor: [...P.drain, 230] }));
+      // flyovers drawn as raised decks (8 m) so they read as grade-separated
+      L.push(new PathLayer({ id: 'flyover', data: fly, getPath: (f) => (f as Street).geometry.coordinates.map((c) => [c[0], c[1], 8]) as any,
+        getWidth: (f) => Math.max(7, (f as Street).properties.width), widthUnits: 'meters', getColor: [...P.flyover, 235], capRounded: true, jointRounded: true, billboard: false }));
       const nearest = area.stations.map((s) => ({ s, km: turf.distance(turf.point(area.center), s) })).sort((a, b) => a.km - b.km)[0];
       if (nearest) {
         L.push(new ArcLayer({ id: 'arc', data: [nearest], getSourcePosition: (d) => (d as typeof nearest).s.geometry.coordinates as [number, number], getTargetPosition: () => area.center,
-          getSourceColor: [196, 110, 30, 255], getTargetColor: [185, 58, 43, 255], getWidth: 3, getHeight: 0.25, greatCircle: false }));
+          getSourceColor: [...P.station, 255], getTargetColor: [...P.narrow, 255], getWidth: 3, getHeight: 0.25, greatCircle: false }));
         const p2 = ((t + 0.8) % 1.6) / 1.6;
         L.push(new ScatterplotLayer({ id: 'station', data: [nearest.s], getPosition: (d) => (d as typeof nearest.s).geometry.coordinates as [number, number], radiusUnits: 'pixels',
-          getRadius: 6 + p2 * 18, getFillColor: [196, 110, 30, 200 * (1 - p2)], stroked: true, getLineColor: [196, 110, 30, 255], lineWidthMinPixels: 2, updateTriggers: { getRadius: t, getFillColor: t } }));
+          getRadius: 6 + p2 * 18, getFillColor: [...P.station, 200 * (1 - p2)], stroked: true, getLineColor: [...P.station, 255], lineWidthMinPixels: 2, updateTriggers: { getRadius: t, getFillColor: t } }));
       }
     }
     return L;
-  }, [area, point, areaStatus, t]);
+  }, [area, point, areaStatus, t, P]);
 
   return (
     <Map
       ref={ref}
       initialViewState={{ longitude: city.lng, latitude: city.lat, zoom: 15.6, pitch: 62, bearing: -24 }}
-      mapStyle={STYLE}
-      onLoad={onLoad}
+      mapStyle={P.mapStyle}
+      onLoad={() => addLayers(true)}
       onClick={onClick}
       maxPitch={80}
       minZoom={10}

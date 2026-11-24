@@ -4,7 +4,7 @@
 import * as turf from '@turf/turf';
 import type { Map as MLMap, MapGeoJSONFeature } from 'maplibre-gl';
 import type { Feature, Polygon, LineString } from 'geojson';
-import type { AreaData } from './overpass';
+import { gradeSeparation, type AreaData, type StreetProps } from './overpass';
 import { studyStreet } from '../study/geometry';
 
 const CLASS_WIDTH: Record<string, number> = {
@@ -54,22 +54,25 @@ export function areaFromTiles(map: MLMap, lat: number, lng: number, radius = 250
       if ((coords as number[][]).length < 2) continue;
       const ln = turf.lineString(coords as number[][]);
       if (!within(ln)) continue;
-      const k = JSON.stringify((coords as number[][])[0]) + cls;
+      const k = JSON.stringify((coords as number[][])[0]) + cls + (f.properties?.brunnel ?? '');
       if (seenS.has(k)) continue; seenS.add(k);
-      streets.push(turf.lineString(coords as number[][], { name: '', width: CLASS_WIDTH[cls] ?? 5, cls }) as Feature<LineString, { name: string; width: number; cls: string }>);
+      const bridge = f.properties?.brunnel === 'bridge';
+      streets.push(turf.lineString(coords as number[][], { name: '', width: CLASS_WIDTH[cls] ?? 5, cls, bridge, nh: cls === 'trunk' || cls === 'motorway', ref: '' }) as Feature<LineString, StreetProps>);
     }
   }
   // Names come from the separate transportation_name layer
-  const names = q('transportation_name').filter((f) => f.properties?.name && within(f as Feature));
+  const names = q('transportation_name').filter((f) => (f.properties?.name || f.properties?.ref) && within(f as Feature));
   for (const s of streets) {
-    let best: { d: number; name: string } | null = null;
+    let best: { d: number; name: string; ref: string } | null = null;
     for (const n of names) {
       const geom = n.geometry.type === 'LineString' ? n.geometry.coordinates : n.geometry.type === 'MultiLineString' ? n.geometry.coordinates[0] : null;
       if (!geom || geom.length < 2) continue;
       const d = turf.pointToLineDistance(turf.point(s.geometry.coordinates[0]), turf.lineString(geom), { units: 'meters' });
-      if (d < 15 && (!best || d < best.d)) best = { d, name: String(n.properties.name) };
+      if (d < 15 && (!best || d < best.d)) best = { d, name: String(n.properties.name ?? ''), ref: String(n.properties.ref ?? '') };
     }
-    s.properties.name = best?.name ?? `Unnamed ${s.properties.cls} street`;
+    s.properties.name = best?.name || (best?.ref ? best.ref : `Unnamed ${s.properties.cls} street`);
+    s.properties.ref = best?.ref ?? '';
+    if (/^NH\s?\d/i.test(s.properties.ref) || /national highway/i.test(s.properties.name)) s.properties.nh = true;
   }
 
   // Drains and green
@@ -109,6 +112,7 @@ export function areaFromTiles(map: MLMap, lat: number, lng: number, radius = 250
       greenShare: Math.min(1, sum(greens) / circleArea),
       nearestFireStationKm: nearest?.km ?? null,
       nearestFireStationName: nearest?.name ?? null,
+      ...gradeSeparation(streets),
     },
   };
 }

@@ -2,7 +2,8 @@ import { useApp } from '../store/useApp';
 
 const en = {
   tagline: 'Pre-feasibility for Indian streets',
-  city: 'City', viewingAs: 'Viewing as', language: 'Language',
+  intro: { cities: 'Indexing cities', tiles: 'Loading vector tiles', streets: 'Reading street network', widths: 'Measuring right-of-way', fire: 'Checking fire-tender access', drains: 'Mapping drains & flyovers', ready: 'Ready', skip: 'Skip intro' },
+  city: 'City', viewingAs: 'Viewing as', language: 'Language', theme: 'Theme', themes: { light: 'Light', dark: 'Dark', system: 'System' },
   roles: { officer: 'Ward officer', planner: 'Planner / architect', rwa: 'Resident / RWA' },
   pickHint: 'Click any street on the map to analyse a 250 m area around it.',
   analysing: 'Reading OpenStreetMap for this area…',
@@ -29,7 +30,7 @@ const en = {
   realArea: 'Real 250 m area around', realFootprints: 'real building footprints from OpenStreetMap; heights estimated where untagged',
   legendCut: 'Building part inside the new right-of-way', legendCap: 'Floors above the height cap', legendRow: 'Proposed right-of-way', realCut: 'real buildings cut by widening',
   disclaimer: 'Indicative pre-feasibility only. Screening checks are not a compliance or structural audit. Verify all values on site.',
-  legend: { tall: 'Taller buildings', narrow: 'Too narrow for fire tender', tight: 'Tight', ok: 'Clear', drain: 'Mapped drain', station: 'Fire station' },
+  legend: { tall: 'Taller buildings', narrow: 'Too narrow for fire tender', tight: 'Tight', ok: 'Clear', drain: 'Mapped drain', station: 'Fire station', flyover: 'Flyover (elevated)', nh: 'National highway (NHAI)' },
   attribution: 'Map data © OpenStreetMap contributors (ODbL) · Tiles OpenFreeMap',
   vote: 'Your view', agree: 'Agree', disagree: 'Disagree',
 };
@@ -38,7 +39,8 @@ type Dict = typeof en;
 const hi: Dict = {
   ...en,
   tagline: 'भारतीय सड़कों के लिए पूर्व-व्यवहार्यता',
-  city: 'शहर', viewingAs: 'भूमिका', language: 'भाषा',
+  intro: { cities: 'शहर सूचीबद्ध', tiles: 'मानचित्र टाइल लोड', streets: 'सड़क नेटवर्क पढ़ा जा रहा', widths: 'मार्गाधिकार माप', fire: 'दमकल पहुँच जाँच', drains: 'नाले व फ्लाईओवर', ready: 'तैयार', skip: 'छोड़ें' },
+  city: 'शहर', viewingAs: 'भूमिका', language: 'भाषा', theme: 'थीम', themes: { light: 'हल्का', dark: 'गहरा', system: 'सिस्टम' },
   roles: { officer: 'वार्ड अधिकारी', planner: 'योजनाकार / वास्तुकार', rwa: 'निवासी / RWA' },
   pickHint: 'किसी भी सड़क पर क्लिक करें — उसके 250 मी क्षेत्र का विश्लेषण होगा।',
   analysing: 'इस क्षेत्र का OpenStreetMap डेटा पढ़ा जा रहा है…',
@@ -65,7 +67,7 @@ const hi: Dict = {
   realArea: 'वास्तविक 250 मी क्षेत्र —', realFootprints: 'वास्तविक भवन (OpenStreetMap); बिना टैग ऊँचाई अनुमानित',
   legendCut: 'नए मार्गाधिकार में आने वाला भवन भाग', legendCap: 'ऊँचाई सीमा से ऊपर की मंज़िलें', legendRow: 'प्रस्तावित मार्गाधिकार', realCut: 'वास्तविक भवन चौड़ीकरण से प्रभावित',
   disclaimer: 'केवल सांकेतिक पूर्व-व्यवहार्यता। ये जाँचें अनुपालन या संरचनात्मक ऑडिट नहीं हैं। सभी मान स्थल पर सत्यापित करें।',
-  legend: { tall: 'ऊँचे भवन', narrow: 'दमकल हेतु बहुत संकरी', tight: 'तंग', ok: 'खुली', drain: 'नाला', station: 'दमकल केंद्र' },
+  legend: { tall: 'ऊँचे भवन', narrow: 'दमकल हेतु बहुत संकरी', tight: 'तंग', ok: 'खुली', drain: 'नाला', station: 'दमकल केंद्र', flyover: 'फ्लाईओवर (ऊँचा)', nh: 'राष्ट्रीय राजमार्ग (NHAI)' },
   vote: 'आपकी राय', agree: 'सहमत', disagree: 'असहमत',
 };
 

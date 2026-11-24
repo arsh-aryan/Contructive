@@ -7,6 +7,7 @@ import * as THREE from 'three';
 import { ASSUMPTIONS as A, clearWidth, floodDepth, type Levers } from '../model/model';
 import type { Scenario } from '../store/useApp';
 import { pointAt, sampleLine, type StudyGeometry, type XZ } from './geometry';
+import { usePalette } from '../theme';
 
 const shapeOf = (ring: XZ[]) => new THREE.Shape(ring.map(([x, z]) => new THREE.Vector2(x, -z)));
 
@@ -34,6 +35,7 @@ const side = (s: { p: XZ; dir: XZ }, off: number): XZ => [s.p[0] - s.dir[1] * of
 interface Props { g: StudyGeometry; L: Levers; isPlan: boolean; scenario: Scenario; labels: { call: string; blocked: string; through: string } }
 
 export default function RealArea({ g, L, isPlan, scenario, labels }: Props) {
+  const S = usePalette().scene;
   const group = useRef<THREE.Group>(null);
   const grow = useRef(0);
   useEffect(() => { grow.current = 0; }, [g]);
@@ -71,31 +73,40 @@ export default function RealArea({ g, L, isPlan, scenario, labels }: Props) {
     <group>
       {/* site disc */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.01, 0]} receiveShadow>
-        <circleGeometry args={[g.radius + 30, 64]} /><meshStandardMaterial color="#ebe8e1" roughness={1} />
+        <circleGeometry args={[g.radius + 30, 64]} /><meshStandardMaterial color={S.disc} roughness={1} />
       </mesh>
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.02, 0]}>
-        <ringGeometry args={[g.radius - 0.8, g.radius, 96]} /><meshBasicMaterial color="#0f766e" transparent opacity={0.5} />
+        <ringGeometry args={[g.radius - 0.8, g.radius, 96]} /><meshBasicMaterial color={S.ring} transparent opacity={0.5} />
       </mesh>
 
       {/* streets (real widths), studied lane highlighted */}
       {g.streets.map((s, i) => (
-        <Flat key={i} ring={s.ring} y={s.isStudy ? 0.07 : 0.05} color={s.isStudy ? (isPlan ? '#9fd3ca' : '#e9b4a9') : '#d2cdc3'} />
+        s.bridge ? null : <Flat key={i} ring={s.ring} y={s.isStudy ? 0.07 : 0.05} color={s.isStudy ? (isPlan ? S.lanePlan : S.laneToday) : s.nh ? S.nh : S.street} />
       ))}
-      {g.newCorridors.map((r, i) => <Flat key={`row${i}`} ring={r} y={0.09} color="#bfe3dc" />)}
+      {g.newCorridors.map((r, i) => <Flat key={`row${i}`} ring={r} y={0.09} color={S.row} />)}
+      {/* flyovers: raised decks on pillars (grade-separated, untouched by ground works) */}
+      {g.streets.filter((s) => s.bridge).map((s, i) => (
+        <group key={`fly${i}`}>
+          <Extruded ring={s.ring} height={0.9} y={7.2} color={S.flyover} />
+          {sampleLine(s.line, 18).map((p, j) => (
+            <mesh key={j} position={[p.p[0], 3.6, p.p[1]]} castShadow><cylinderGeometry args={[0.7, 0.8, 7.2, 12]} /><meshStandardMaterial color={S.pillar} roughness={0.7} /></mesh>
+          ))}
+        </group>
+      ))}
 
       <group ref={group}>
         {/* real buildings */}
         {g.buildings.filter((b) => b.ring.length > 2).map((b) => (
           <Extruded key={b.id} ring={b.ring} height={Math.max(3, b.height)}
-            color={isPlan && (b.capped || b.affected) ? '#d9efe9' : b.estimated ? '#f3f0ea' : '#fbfaf7'} />
+            color={isPlan && (b.capped || b.affected) ? S.bldChanged : b.estimated ? S.bldEst : S.bld} />
         ))}
         {/* parts removed by the setback, shown as red ghosts */}
         {isPlan && g.buildings.flatMap((b) => b.cut.map((r, j) => (
-          <Extruded key={`${b.id}-cut-${j}`} ring={r} height={Math.max(3, b.baseHeight)} color="#c0392b" opacity={0.35} />
+          <Extruded key={`${b.id}-cut-${j}`} ring={r} height={Math.max(3, b.baseHeight)} color={S.cut} opacity={0.35} />
         )))}
         {/* height cap: ghost of the removed upper floors */}
         {isPlan && g.buildings.filter((b) => b.capped && b.ring.length > 2).map((b) => (
-          <Extruded key={`${b.id}-cap`} ring={b.ring} height={b.baseHeight - b.height} y={b.height} color="#c48c28" opacity={0.25} />
+          <Extruded key={`${b.id}-cap`} ring={b.ring} height={b.baseHeight - b.height} y={b.height} color={S.cap} opacity={0.25} />
         ))}
         {/* rooftop solar */}
         {isPlan && L.solar && g.buildings.filter((b) => b.ring.length > 2).slice(0, 120).map((b) => {
@@ -117,13 +128,13 @@ export default function RealArea({ g, L, isPlan, scenario, labels }: Props) {
       )}
       {/* designated vending zone */}
       {isPlan && L.vendor && samples.length > 0 && (
-        <Instances limit={400}><boxGeometry args={[1.4, 0.9, 1.1]} /><meshStandardMaterial color="#c98a4b" emissive="#0f766e" emissiveIntensity={0.1} />
+        <Instances limit={400}><boxGeometry args={[1.4, 0.9, 1.1]} /><meshStandardMaterial color="#c98a4b" emissive={S.ring} emissiveIntensity={0.1} />
           {samples.filter((_, i) => i % 2 === 0).map((s, i) => { const [x, z] = side(s, half - 0.75); return <Instance key={i} position={[x, 0.5, z]} rotation={[0, Math.atan2(-s.dir[1], s.dir[0]), 0]} />; })}
         </Instances>
       )}
       {/* drain along one edge of the lane */}
       {samples.length > 0 && (
-        <Instances limit={400}><boxGeometry args={[6.6, L.drain ? 0.18 : 0.04, 0.8]} /><meshStandardMaterial color={L.drain ? '#9a958b' : '#4a4843'} roughness={L.drain ? 0.9 : 0.15} metalness={L.drain ? 0 : 0.5} />
+        <Instances limit={400}><boxGeometry args={[6.6, L.drain ? 0.18 : 0.04, 0.8]} /><meshStandardMaterial color={L.drain ? S.drainSlab : S.drainOpen} roughness={L.drain ? 0.9 : 0.15} metalness={L.drain ? 0 : 0.5} />
           {samples.map((s, i) => { const [x, z] = side(s, -(half - 0.4)); return <Instance key={i} position={[x, 0.12, z]} rotation={[0, Math.atan2(-s.dir[1], s.dir[0]), 0]} />; })}
         </Instances>
       )}

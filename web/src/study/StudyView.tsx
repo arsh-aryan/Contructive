@@ -167,9 +167,9 @@ export default function StudyView() {
         </> : <Chip>—</Chip>}
         <div className="flex-1" />
         {works.length > 0 && <div className="text-right tnum"><div className="text-[11px] text-muted">{T.metrics.cost} (±40%)</div><div className="display text-[24px]">₹<Num value={mp.cost.totalCr} d={2} /> Cr</div></div>}
-        <button onClick={share} className="rounded-lg px-4 py-2.5 border border-line hover:bg-card">{T.share}</button>
+        <button onClick={share} className="btn-ghost px-4 py-2.5 font-semibold">{T.share}</button>
         <button onClick={() => exportDpr({ city: city.name, place, baseline, works, observations: area ? observe(area.features, baseline) : [], workLabel: (w) => workLabel(T, w) })}
-          className="rounded-lg px-4 py-2.5 font-semibold text-white bg-accent hover:bg-accent-deep">{T.exportDpr}</button>
+          className="btn-metal px-4 py-2.5">{T.exportDpr}</button>
       </div>
     </div>
   );
