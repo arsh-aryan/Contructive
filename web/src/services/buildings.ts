@@ -10,6 +10,8 @@ export const OVERTURE_SRC = 'overture';
 export const FLOOR_M = 3.2;
 
 let registered = false;
+/** True once Overture building tiles have actually loaded in this session. */
+export const overture = { ok: false };
 export function registerPmtiles() {
   if (registered) return; registered = true;
   addProtocol('pmtiles', new Protocol().tile);
