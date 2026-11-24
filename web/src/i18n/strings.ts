@@ -3,6 +3,7 @@ import { useApp } from '../store/useApp';
 const en = {
   tagline: 'Pre-feasibility for Indian streets',
   intro: { cities: 'Indexing cities', tiles: 'Loading vector tiles', streets: 'Reading street network', widths: 'Measuring right-of-way', fire: 'Checking fire-tender access', drains: 'Mapping drains & flyovers', ready: 'Ready', skip: 'Skip intro' },
+  toStudy: { title: 'Building the 3D study', project: 'Projecting real footprints', cut: 'Cutting the right-of-way', place: 'Placing proposed works' },
   city: 'City', viewingAs: 'Viewing as', language: 'Language', theme: 'Theme', themes: { light: 'Light', dark: 'Dark', system: 'System' },
   roles: { officer: 'Ward officer', planner: 'Planner / architect', rwa: 'Resident / RWA' },
   pickHint: 'Click any street on the map to analyse a 250 m area around it.',
@@ -40,6 +41,7 @@ const hi: Dict = {
   ...en,
   tagline: 'भारतीय सड़कों के लिए पूर्व-व्यवहार्यता',
   intro: { cities: 'शहर सूचीबद्ध', tiles: 'मानचित्र टाइल लोड', streets: 'सड़क नेटवर्क पढ़ा जा रहा', widths: 'मार्गाधिकार माप', fire: 'दमकल पहुँच जाँच', drains: 'नाले व फ्लाईओवर', ready: 'तैयार', skip: 'छोड़ें' },
+  toStudy: { title: '3D अध्ययन तैयार हो रहा है', project: 'वास्तविक भवन रेखांकन', cut: 'मार्गाधिकार काटा जा रहा', place: 'प्रस्तावित कार्य रखे जा रहे' },
   city: 'शहर', viewingAs: 'भूमिका', language: 'भाषा', theme: 'थीम', themes: { light: 'हल्का', dark: 'गहरा', system: 'सिस्टम' },
   roles: { officer: 'वार्ड अधिकारी', planner: 'योजनाकार / वास्तुकार', rwa: 'निवासी / RWA' },
   pickHint: 'किसी भी सड़क पर क्लिक करें — उसके 250 मी क्षेत्र का विश्लेषण होगा।',

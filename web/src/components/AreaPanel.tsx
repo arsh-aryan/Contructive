@@ -35,7 +35,7 @@ export default function AreaPanel() {
           className="glass z-20 absolute right-4 top-4 bottom-4 w-[400px] max-w-[calc(100%-2rem)] rounded-2xl flex flex-col overflow-hidden">
           <div className="px-5 pt-5 pb-3 border-b border-line">
             <div className="lbl">{area.features.buildingCount} buildings · {area.features.streetCount} street segments · 250 m</div>
-            <div className="display text-[24px] mt-1.5 truncate">{area.features.narrowestName}</div>
+            <div className="mt-2.5"><span className="tag-hi font-display text-[20px] max-w-full truncate">{area.features.narrowestName}</span></div>
           </div>
           <div className="flex-1 overflow-y-auto px-5 pt-1 bg-panel/40">
             <Section title={T.observations}>
@@ -65,7 +65,7 @@ export default function AreaPanel() {
                     <span className="flex-1">
                       <span className="block font-medium">{workLabel(T, s.work)}</span>
                       <span className="block text-[11px] text-muted mt-0.5">{s.why}</span>
-                      <span className="block text-[11px] text-accent mt-1 tnum">{s.gain}</span>
+                      <span className="block text-[11px] text-accent-text mt-1 tnum">{s.gain}</span>
                     </span>
                   </motion.label>
                 );

@@ -156,7 +156,7 @@ export default function RealArea({ g, L, isPlan, scenario, labels }: Props) {
 
       {/* lane label */}
       {g.lane.length > 1 && (() => { const m = pointAt(g.lane, g.laneLength / 2).p; return (
-        <Html position={[m[0], 14, m[1]]} center><div className={`whitespace-nowrap text-[11px] font-semibold px-2.5 py-1 rounded-full border ${isPlan ? 'bg-white text-accent border-accent/40' : 'bg-white text-fail border-fail/40'}`}>
+        <Html position={[m[0], 14, m[1]]} center><div className={`whitespace-nowrap text-[11px] font-semibold px-2.5 py-1 rounded-full border ${isPlan ? 'bg-white text-accent-text border-accent/40' : 'bg-white text-fail border-fail/40'}`}>
           {g.laneName} · {L.width.toFixed(1)} m · clear {clearWidth(L).toFixed(1)} m</div></Html>); })()}
 
       {scenario === 'fire' && g.lane.length > 1 && (

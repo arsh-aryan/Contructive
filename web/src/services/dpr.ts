@@ -82,10 +82,16 @@ export function exportDpr(opts: { city: string; place: string; baseline: Levers;
   // ---- cover band ----
   doc.setFillColor(...NAVY); doc.rect(0, 0, W, 46, 'F');
   doc.setFillColor(...CRIMSON); doc.rect(0, 46, W, 1.4, 'F');
-  // three-stripe mark
-  doc.setDrawColor(...CRIMSON); doc.setLineWidth(1.6); doc.line(M, 26, M + 9, 17);
-  doc.setDrawColor(230, 234, 242); doc.line(M + 3, 29, M + 12, 20);
-  doc.setDrawColor(...CRIMSON); doc.line(M + 6, 32, M + 15, 23);
+  // three-stripe mark: silver tile, bluish-black stripes running into the border
+  const lx = M, ly = 14, ls = 15;
+  doc.setFillColor(238, 241, 246); doc.roundedRect(lx, ly, ls, ls, 3.4, 3.4, 'F');
+  doc.setDrawColor(22, 28, 48); doc.setLineWidth(2);
+  for (const k of [0.64, 1.0, 1.36]) {
+    const c = k * ls; // line x + y = c within the square
+    const x0 = Math.max(0, c - ls), x1 = Math.min(ls, c);
+    doc.line(lx + x0, ly + (c - x0), lx + x1, ly + (c - x1));
+  }
+  doc.setLineWidth(1.1); doc.roundedRect(lx, ly, ls, ls, 3.4, 3.4, 'S');
   font(SIZE.title, 'bold', [255, 255, 255]); doc.text('CONSTRUCTIVE', M + 21, 27);
   font(SIZE.body, 'normal', [210, 218, 235]); doc.text('Pre-feasibility note (indicative)', M + 21, 34);
   font(SIZE.small, 'normal', [210, 218, 235]);
