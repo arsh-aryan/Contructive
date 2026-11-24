@@ -6,7 +6,7 @@ import type { Map as MLMap, MapGeoJSONFeature } from 'maplibre-gl';
 import type { Feature, Polygon, LineString } from 'geojson';
 import { gradeSeparation, type AreaData, type StreetProps } from './overpass';
 import { studyStreet } from '../study/geometry';
-import { OVERTURE_SRC, heightOf } from './buildings';
+import { OVERTURE_SRC, heightOf, overture } from './buildings';
 
 const CLASS_WIDTH: Record<string, number> = {
   motorway: 24, trunk: 18, primary: 14, secondary: 10, tertiary: 7, minor: 5, service: 3.5, track: 3, path: 2, raceway: 8, busway: 7,
@@ -23,15 +23,17 @@ export function areaFromTiles(map: MLMap, lat: number, lng: number, radius = 250
   const cpt = turf.point(center);
   const circle = turf.circle(center, radius / 1000, { units: 'kilometers', steps: 48 });
   const circleArea = turf.area(circle);
-  const src = Object.entries(map.getStyle().sources).find(([, s]) => (s as { type: string }).type === 'vector')?.[0] ?? 'openmaptiles';
+  const src = Object.entries(map.getStyle().sources).find(([k, s]) => k !== OVERTURE_SRC && (s as { type: string }).type === 'vector')?.[0] ?? 'openmaptiles';
   const q = (layer: string) => map.querySourceFeatures(src, { sourceLayer: layer }) as MapGeoJSONFeature[];
   const within = (f: Feature) => { try { return turf.booleanIntersects(f, circle); } catch { return false; } };
 
   // Buildings (dedupe tile-split copies by id + rounded centroid)
   const seen = new Set<string>();
   const buildings: AreaData['buildings'] = [];
-  const useOv = !!map.getSource(OVERTURE_SRC);
-  const bsrc = useOv ? (map.querySourceFeatures(OVERTURE_SRC, { sourceLayer: 'building' }) as MapGeoJSONFeature[]) : q('building');
+  const ov = overture.ok && map.getSource(OVERTURE_SRC)
+    ? (map.querySourceFeatures(OVERTURE_SRC, { sourceLayer: 'building' }) as MapGeoJSONFeature[]) : [];
+  const useOv = ov.length > 0;
+  const bsrc = useOv ? ov : q('building');
   for (const f of bsrc) {
     if (f.properties?.is_underground === true) continue;
     const polys = f.geometry.type === 'Polygon' ? [f.geometry.coordinates] : f.geometry.type === 'MultiPolygon' ? f.geometry.coordinates : [];

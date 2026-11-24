@@ -9,7 +9,7 @@ import type { Layer } from '@deck.gl/core';
 import * as turf from '@turf/turf';
 import { useApp } from '../store/useApp';
 import { areaFromTiles } from '../services/tileArea';
-import { registerPmtiles, OVERTURE_SRC, OVERTURE_URL, HEIGHT_EXPR, BASE_EXPR } from '../services/buildings';
+import { registerPmtiles, overture, OVERTURE_SRC, OVERTURE_URL, HEIGHT_EXPR, BASE_EXPR } from '../services/buildings';
 registerPmtiles();
 import { ASSUMPTIONS } from '../model/model';
 import { useT } from '../i18n/strings';
@@ -55,22 +55,46 @@ export default function CityMap() {
   const addLayers = (force = false) => {
     const map = ref.current?.getMap(); if (!map || (!force && !map.isStyleLoaded())) return;
     if (import.meta.env.DEV) (window as unknown as { __map: unknown }).__map = map;
-    // 3D buildings: Overture Maps footprints (OSM + Google + Microsoft), real heights where known
-    if (map.getLayer('c-3d-buildings')) map.removeLayer('c-3d-buildings');
-    if (!map.getSource(OVERTURE_SRC)) map.addSource(OVERTURE_SRC, { type: 'vector', url: OVERTURE_URL, attribution: '© Overture Maps Foundation' });
-    // hide the style's own flat OSM building layers (Overture replaces them)
-    for (const l of map.getStyle().layers) if ((l as { 'source-layer'?: string })['source-layer'] === 'building' && l.id !== 'c-3d-buildings') map.setLayoutProperty(l.id, 'visibility', 'none');
+    // 3D buildings. OSM (OpenFreeMap) extrusions always load first as a safe fallback;
+    // Overture footprints (denser) take over only once their tiles actually arrive.
+    for (const id of ['c-3d-buildings', 'c-osm-buildings']) if (map.getLayer(id)) map.removeLayer(id);
+    const omt = Object.keys(map.getStyle().sources).find((s) => s !== OVERTURE_SRC && (map.getStyle().sources[s] as { type: string }).type === 'vector') ?? 'openmaptiles';
+    for (const l of map.getStyle().layers) if ((l as { 'source-layer'?: string })['source-layer'] === 'building') map.setLayoutProperty(l.id, 'visibility', 'none');
+    const osmH = ['coalesce', ['get', 'render_height'], 8] as never;
     map.addLayer({
-      id: 'c-3d-buildings', type: 'fill-extrusion', source: OVERTURE_SRC, 'source-layer': 'building', minzoom: 13,
-      filter: ['!=', ['get', 'is_underground'], true],
+      id: 'c-osm-buildings', type: 'fill-extrusion', source: omt, 'source-layer': 'building', minzoom: 13,
+      layout: { visibility: overture.ok ? 'none' : 'visible' },
       paint: {
-        'fill-extrusion-color': ['interpolate', ['linear'], HEIGHT_EXPR as never, 0, P.buildingRamp[0], 15, P.buildingRamp[1], 40, P.buildingRamp[2]],
-        'fill-extrusion-height': ['interpolate', ['linear'], ['zoom'], 13, 0, 14.5, HEIGHT_EXPR as never],
-        'fill-extrusion-base': BASE_EXPR as never,
-        'fill-extrusion-opacity': 0.96,
-        'fill-extrusion-vertical-gradient': true,
+        'fill-extrusion-color': ['interpolate', ['linear'], osmH, 0, P.buildingRamp[0], 15, P.buildingRamp[1], 40, P.buildingRamp[2]],
+        'fill-extrusion-height': ['interpolate', ['linear'], ['zoom'], 13, 0, 14.5, osmH],
+        'fill-extrusion-base': ['coalesce', ['get', 'render_min_height'], 0],
+        'fill-extrusion-opacity': 0.95,
       },
     });
+    try {
+      if (!map.getSource(OVERTURE_SRC)) map.addSource(OVERTURE_SRC, { type: 'vector', url: OVERTURE_URL, attribution: '© Overture Maps Foundation' });
+      map.addLayer({
+        id: 'c-3d-buildings', type: 'fill-extrusion', source: OVERTURE_SRC, 'source-layer': 'building', minzoom: 13,
+        filter: ['!=', ['get', 'is_underground'], true],
+        paint: {
+          'fill-extrusion-color': ['interpolate', ['linear'], HEIGHT_EXPR as never, 0, P.buildingRamp[0], 15, P.buildingRamp[1], 40, P.buildingRamp[2]],
+          'fill-extrusion-height': ['interpolate', ['linear'], ['zoom'], 13, 0, 14.5, HEIGHT_EXPR as never],
+          'fill-extrusion-base': BASE_EXPR as never,
+          'fill-extrusion-opacity': overture.ok ? 0.96 : 0, // invisible (but still loading) until tiles arrive
+          'fill-extrusion-vertical-gradient': true,
+        },
+      });
+    } catch (e) { console.warn('Overture buildings unavailable, using OSM', e); }
+    if (!overture.ok) {
+      const onData = (ev: { sourceId?: string; isSourceLoaded?: boolean }) => {
+        if (ev.sourceId !== OVERTURE_SRC || !ev.isSourceLoaded) return;
+        if (map.querySourceFeatures(OVERTURE_SRC, { sourceLayer: 'building' }).length === 0) return;
+        overture.ok = true; map.off('sourcedata', onData);
+        if (map.getLayer('c-3d-buildings')) map.setPaintProperty('c-3d-buildings', 'fill-extrusion-opacity', 0.96);
+        if (map.getLayer('c-osm-buildings')) map.setLayoutProperty('c-osm-buildings', 'visibility', 'none');
+      };
+      map.on('sourcedata', onData);
+    }
     map.setLight?.({ anchor: 'map', position: [1.4, 210, 40], intensity: 0.42, color: '#ffffff' });
     map.setSky?.({ 'sky-color': P.sky.sky, 'horizon-color': P.sky.horizon, 'fog-color': P.sky.fog, 'sky-horizon-blend': 0.6, 'horizon-fog-blend': 0.7, 'fog-ground-blend': 0.4 } as never);
   };
