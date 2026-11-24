@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Constructive</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600&family=Noto+Sans+Devanagari:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./styles.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.2/lottie_light.min.js"></script>
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+} }
+</script>
+</head>
+<body>
+<div id="loader"><div class="box"><div id="loaderAnim"></div><div class="word">Constructive</div><div class="sub" id="loaderSub">Loading Gali 7 · Ward 14</div></div></div>
+
+<header>
+  <div class="brand"><div class="mark" id="brandMark"></div><div><b>Constructive</b><small data-i18n="tagline"></small></div></div>
+  <label class="ctl"><span data-i18n="ward"></span>
+    <select id="ward"><option>14 · Sadar Bazaar (representative)</option></select></label>
+  <span class="crumb">›</span>
+  <label class="ctl"><span data-i18n="lane"></span>
+    <select id="lane"><option>Gali 7 · 120 m</option></select></label>
+  <div class="spacer"></div>
+  <label class="ctl"><span data-i18n="viewingAs"></span><select id="role"></select></label>
+  <label class="ctl"><span data-i18n="language"></span><select id="lang"><option value="en">English</option><option value="hi">हिन्दी</option></select></label>
+</header>
+
+<main>
+  <div id="view">
+    <div class="overlay">
+      <label class="ctl"><span data-i18n="state"></span><select id="state"></select></label>
+      <label class="ctl"><span data-i18n="scenario"></span><select id="scenario"></select></label>
+    </div>
+    <div class="legend" id="legend"></div>
+    <div class="flash" id="flash"></div>
+    <div id="status" class="status"><div class="ico" id="statusIco"></div><div id="statusText"></div></div>
+  </div>
+
+  <aside id="aside">
+    <div class="pane on">
+      <h3><span data-i18n="observations"></span><span id="obsCount"></span></h3>
+      <div id="observations"></div>
+
+      <h3><span data-i18n="works"></span><span id="workCount"></span></h3>
+      <div class="pickers">
+        <select id="addWork"></select>
+        <select id="preset"></select>
+      </div>
+      <div id="works"></div>
+
+      <h3><span id="metricsTitle"></span></h3>
+      <div id="metrics"></div>
+
+      <h3><span data-i18n="checks"></span><span id="checkCount"></span></h3>
+      <div id="checks"></div>
+
+      <div class="disclaimer" data-i18n="disclaimer"></div>
+    </div>
+  </aside>
+</main>
+
+<footer>
+  <div class="effects" id="effects"></div>
+  <div class="cost" id="cost"></div>
+  <button class="btn" id="exportDpr" data-i18n="exportDpr"></button>
+</footer>
+
+<div id="toasts"></div>
+<dialog id="dpr"><pre id="dprText"></pre><div class="bar2"><button class="btn ghost" id="dprCopy">Copy</button><button class="btn" id="dprClose">Close</button></div></dialog>
+
+<script type="module" src="./app.js"></script>
+</body>
+</html>
