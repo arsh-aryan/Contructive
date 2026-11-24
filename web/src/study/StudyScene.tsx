@@ -8,6 +8,8 @@ import { useEffect, useMemo, useRef } from 'react';
 import * as THREE from 'three';
 import { ASSUMPTIONS as A, clearWidth, footpathWidth, floodDepth, treeCount, type Levers } from '../model/model';
 import type { Scenario } from '../store/useApp';
+import RealArea from './RealArea';
+import type { StudyGeometry } from './geometry';
 
 const C = {
   ground: '#1a2124', road: '#3a4246', foot: '#56615f', bld: '#d9d4ca', bldOld: '#bdb3a2', cracked: '#7d7a74',
@@ -16,7 +18,7 @@ const C = {
 
 function rng(seed: number) { let s = seed; return () => (s = (s * 16807) % 2147483647) / 2147483647; }
 
-interface Props { L: Levers; isPlan: boolean; scenario: Scenario; labels: { call: string; blocked: string; through: string } }
+interface Props { L: Levers; isPlan: boolean; scenario: Scenario; labels: { call: string; blocked: string; through: string }; geom?: StudyGeometry | null }
 
 function Lane({ L, isPlan, scenario, labels }: Props) {
   const len = A.corridorLength, half = len / 2, fp = footpathWidth(L), roadHalf = L.width / 2;
@@ -124,47 +126,57 @@ function Rain() {
   const ref = useRef<THREE.LineSegments>(null);
   const geo = useMemo(() => {
     const pts: number[] = [];
-    for (let i = 0; i < 2500; i++) { const x = (Math.random() - 0.5) * 170, y = Math.random() * 50, z = (Math.random() - 0.5) * 90; pts.push(x, y, z, x + 0.3, y - 1.8, z); }
+    for (let i = 0; i < 6000; i++) { const x = (Math.random() - 0.5) * 520, y = Math.random() * 80, z = (Math.random() - 0.5) * 520; pts.push(x, y, z, x + 0.3, y - 1.8, z); }
     const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pts, 3)); return g;
   }, []);
   useFrame((_, dt) => { if (ref.current) { ref.current.position.y -= dt * 45; if (ref.current.position.y < -25) ref.current.position.y = 0; } });
   return <lineSegments ref={ref} geometry={geo}><lineBasicMaterial color="#9cc8ff" transparent opacity={0.35} /></lineSegments>;
 }
 
-function Rig({ scenario }: { scenario: Scenario }) {
+function Rig({ scenario, geom }: { scenario: Scenario; geom?: StudyGeometry | null }) {
   const ref = useRef<CameraControls>(null);
   useEffect(() => {
-    const v = { normal: [-95, 70, 55, 0, 0, 0], fire: [-100, 22, 18, -25, 2, 0], monsoon: [-55, 16, 40, 0, 0, 0] }[scenario];
+    let v: number[];
+    if (geom && geom.lane.length > 1) {
+      const [x0, z0] = geom.lane[0];
+      const [x1, z1] = geom.lane[Math.min(geom.lane.length - 1, Math.floor(geom.lane.length / 2))];
+      const mx = (x0 + x1) / 2, mz = (z0 + z1) / 2;
+      v = { normal: [mx - 120, 110, mz + 120, mx, 0, mz], fire: [x0 - 40, 26, z0 + 40, mx, 2, mz], monsoon: [mx - 80, 35, mz + 80, mx, 0, mz] }[scenario];
+    } else {
+      v = { normal: [-95, 70, 55, 0, 0, 0], fire: [-100, 22, 18, -25, 2, 0], monsoon: [-55, 16, 40, 0, 0, 0] }[scenario];
+    }
     ref.current?.setLookAt(v[0], v[1], v[2], v[3], v[4], v[5], true);
-  }, [scenario]);
-  return <CameraControls ref={ref} maxPolarAngle={Math.PI * 0.48} minDistance={15} maxDistance={260} smoothTime={0.6} />;
+  }, [scenario, geom]);
+  return <CameraControls ref={ref} maxPolarAngle={Math.PI * 0.48} minDistance={15} maxDistance={700} smoothTime={0.6} />;
 }
 
-export default function StudyScene({ L, isPlan, scenario, labels }: Props) {
+export default function StudyScene({ L, isPlan, scenario, labels, geom }: Props) {
   const monsoon = scenario === 'monsoon';
   return (
-    <Canvas shadows dpr={[1, 2]} camera={{ position: [-95, 70, 55], fov: 38, near: 0.5, far: 1200 }} gl={{ antialias: false, powerPreference: 'high-performance' }}>
+    <Canvas shadows dpr={[1, 2]} camera={{ position: geom ? [-210, 190, 210] : [-95, 70, 55], fov: 38, near: 0.5, far: 3000 }} gl={{ antialias: false, powerPreference: 'high-performance' }}>
       <color attach="background" args={[monsoon ? '#273138' : '#0e1113']} />
-      <fog attach="fog" args={[monsoon ? '#273138' : '#0e1113', 140, 360]} />
+      <fog attach="fog" args={[monsoon ? '#273138' : '#0e1113', geom ? 350 : 140, geom ? 900 : 360]} />
       <Sky distance={4500} sunPosition={monsoon ? [0, 0.05, -1] : [-60, 18, 30]} turbidity={monsoon ? 18 : 6} rayleigh={monsoon ? 4 : 1.2} />
       <hemisphereLight args={['#dfe9ff', '#2a2420', monsoon ? 0.6 : 0.9]} />
-      <directionalLight position={[-50, 70, 35]} intensity={monsoon ? 0.8 : 2.4} color="#ffe3c0" castShadow shadow-mapSize={[2048, 2048]}
-        shadow-camera-left={-90} shadow-camera-right={90} shadow-camera-top={90} shadow-camera-bottom={-90} shadow-bias={-0.0004} />
+      <directionalLight position={geom ? [-180, 260, 120] : [-50, 70, 35]} intensity={monsoon ? 0.8 : 2.4} color="#ffe3c0" castShadow shadow-mapSize={[2048, 2048]}
+        shadow-camera-left={geom ? -300 : -90} shadow-camera-right={geom ? 300 : 90} shadow-camera-top={geom ? 300 : 90} shadow-camera-bottom={geom ? -300 : -90} shadow-camera-far={1000} shadow-bias={-0.0004} />
       <Environment resolution={256}>
         <Lightformer form="rect" intensity={2} position={[0, 30, -40]} scale={[100, 20, 1]} color="#ffd9b0" />
         <Lightformer form="rect" intensity={1} position={[-50, 20, 40]} scale={[60, 20, 1]} color="#9ccfff" />
       </Environment>
       <mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow><planeGeometry args={[800, 800]} /><meshStandardMaterial color={C.ground} roughness={1} /></mesh>
-      <Lane L={L} isPlan={isPlan} scenario={scenario} labels={labels} />
+      {geom
+        ? <RealArea g={geom} L={L} isPlan={isPlan} scenario={scenario} labels={labels} />
+        : <Lane L={L} isPlan={isPlan} scenario={scenario} labels={labels} />}
       {monsoon && <>
-        <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, floodDepth(L), 0]}><planeGeometry args={[A.corridorLength + 40, 90]} />
-          <meshPhysicalMaterial color="#3d6f99" transparent opacity={0.72} roughness={0.08} metalness={0.1} clearcoat={1} /></mesh>
+        {!geom && <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, floodDepth(L), 0]}><planeGeometry args={[A.corridorLength + 40, 90]} />
+          <meshPhysicalMaterial color="#3d6f99" transparent opacity={0.72} roughness={0.08} metalness={0.1} clearcoat={1} /></mesh>}
         <Rain />
       </>}
-      <ContactShadows position={[0, 0.02, 0]} opacity={0.5} scale={200} blur={2.5} far={20} />
-      <Rig scenario={scenario} />
+      {!geom && <ContactShadows position={[0, 0.02, 0]} opacity={0.5} scale={200} blur={2.5} far={20} />}
+      <Rig scenario={scenario} geom={geom} />
       <EffectComposer multisampling={0}>
-        <N8AO aoRadius={3} intensity={2.2} distanceFalloff={1} halfRes />
+        <N8AO aoRadius={geom ? 6 : 3} intensity={2.2} distanceFalloff={1} halfRes />
         <Bloom mipmapBlur luminanceThreshold={1} intensity={0.9} />
         <ToneMapping mode={ToneMappingMode.AGX} />
         <Vignette offset={0.3} darkness={0.55} />
