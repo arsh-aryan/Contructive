@@ -1,0 +1,70 @@
+import { useApp } from '../store/useApp';
+
+const en = {
+  tagline: 'Pre-feasibility for Indian streets',
+  city: 'City', viewingAs: 'Viewing as', language: 'Language',
+  roles: { officer: 'Ward officer', planner: 'Planner / architect', rwa: 'Resident / RWA' },
+  pickHint: 'Click any street on the map to analyse a 250 m area around it.',
+  analysing: 'Reading OpenStreetMap for this area…',
+  areaFailed: 'Could not reach OpenStreetMap. Try again, or pick another spot.',
+  observations: 'Site observations', solutions: 'Possible solutions', addAll: 'Use top suggestions',
+  openStudy: 'Open 3D study', backToCity: 'Back to city map',
+  layers: 'Layers', state: 'State', today: 'Today', plan: 'Proposed',
+  scenario: 'Scenario', scenarios: { normal: 'Normal day', monsoon: 'Monsoon peak', fire: 'Fire call' },
+  works: 'Proposed works', addWork: 'Add work…', streetType: 'Apply street type…', noWorks: 'No works yet. Add one from the lists above or pick from the suggestions.',
+  groups: { roads: 'Roads & access', drainage: 'Drainage (storm water)', buildings: 'Buildings', public: 'Public realm', energy: 'Energy & transport' },
+  workNames: {
+    widen: 'Widen right-of-way to', clearEnc: 'Remove encroachment', drain: 'Covered RCC drain', pits: 'Rainwater recharge pits',
+    heightCap: 'Cap building height at', retrofit: 'Retrofit flagged structures', trees: 'Street trees, green cover', shade: 'Shaded walkway, 1.8 m',
+    vendor: 'Designated vending zone (1.5 m)', solar: 'Rooftop solar, all plots', brt: 'e-Bus / BRT lane',
+  },
+  presets: { chandigarh: 'Chandigarh sector road', jaipur: 'Jaipur bazaar', ahmedabad: 'Ahmedabad BRT corridor' },
+  metrics: { fire: 'Fire tender response', flood: 'Waterlogging index', heat: 'Heat-island excess', safety: 'Structural screening', walk: 'Walkability', cost: 'Indicative cost' },
+  checks: 'Screening checks', checkNames: { fire: 'Fire-tender clear width', footpath: 'Footpath width', lowrise: 'Low-rise (≤ G+3)', green: 'Green cover', drain: 'Covered drain', recharge: 'Rainwater recharge' },
+  pass: 'Meets', fail: 'Fails', sev: { fails: 'Fails', marginal: 'Marginal', ok: 'Meets' },
+  blocked: 'Fire tender blocked', through: 'Fire tender gets through',
+  effects: 'Effects vs today', stallsMoved: 'stalls relocated', stallsLost: 'stalls displaced', plots: 'plots set back',
+  exportDpr: 'Export DPR (PDF)', share: 'Save & share', saved: 'Saved. Link copied', added: 'Added', removed: 'Removed', applied: 'Applied',
+  verified: 'Verified', unverified: 'Unverified', representative: 'Representative 120 m section of',
+  disclaimer: 'Indicative pre-feasibility only. Screening checks are not a compliance or structural audit. Verify all values on site.',
+  legend: { tall: 'Taller buildings', narrow: 'Too narrow for fire tender', tight: 'Tight', ok: 'Clear', drain: 'Mapped drain', station: 'Fire station' },
+  attribution: 'Map data © OpenStreetMap contributors (ODbL) · Tiles OpenFreeMap',
+  vote: 'Your view', agree: 'Agree', disagree: 'Disagree',
+};
+
+type Dict = typeof en;
+const hi: Dict = {
+  ...en,
+  tagline: 'भारतीय सड़कों के लिए पूर्व-व्यवहार्यता',
+  city: 'शहर', viewingAs: 'भूमिका', language: 'भाषा',
+  roles: { officer: 'वार्ड अधिकारी', planner: 'योजनाकार / वास्तुकार', rwa: 'निवासी / RWA' },
+  pickHint: 'किसी भी सड़क पर क्लिक करें — उसके 250 मी क्षेत्र का विश्लेषण होगा।',
+  analysing: 'इस क्षेत्र का OpenStreetMap डेटा पढ़ा जा रहा है…',
+  areaFailed: 'OpenStreetMap से संपर्क नहीं हो सका। फिर से प्रयास करें।',
+  observations: 'स्थल अवलोकन', solutions: 'संभावित समाधान', addAll: 'शीर्ष सुझाव अपनाएँ',
+  openStudy: '3D अध्ययन खोलें', backToCity: 'शहर मानचित्र पर लौटें',
+  layers: 'परतें', state: 'स्थिति', today: 'आज', plan: 'प्रस्तावित',
+  scenario: 'परिदृश्य', scenarios: { normal: 'सामान्य दिन', monsoon: 'मानसून चरम', fire: 'आग की कॉल' },
+  works: 'प्रस्तावित कार्य', addWork: 'कार्य जोड़ें…', streetType: 'सड़क प्रकार लागू करें…', noWorks: 'अभी कोई कार्य नहीं। ऊपर की सूची या सुझावों से जोड़ें।',
+  groups: { roads: 'सड़क व पहुँच', drainage: 'जल निकासी', buildings: 'भवन', public: 'सार्वजनिक स्थान', energy: 'ऊर्जा व परिवहन' },
+  workNames: {
+    widen: 'मार्गाधिकार चौड़ा करें', clearEnc: 'अतिक्रमण हटाएँ', drain: 'ढका RCC नाला', pits: 'वर्षा जल पुनर्भरण गड्ढे',
+    heightCap: 'भवन ऊँचाई सीमा', retrofit: 'चिह्नित भवनों का सुदृढ़ीकरण', trees: 'सड़क वृक्ष, हरित आवरण', shade: 'छायादार पैदल पथ, 1.8 मी',
+    vendor: 'निर्धारित वेंडिंग ज़ोन (1.5 मी)', solar: 'छत पर सौर, सभी भूखंड', brt: 'ई-बस / BRT लेन',
+  },
+  presets: { chandigarh: 'चंडीगढ़ सेक्टर सड़क', jaipur: 'जयपुर बाज़ार', ahmedabad: 'अहमदाबाद BRT कॉरिडोर' },
+  metrics: { fire: 'दमकल पहुँच समय', flood: 'जलभराव सूचकांक', heat: 'अतिरिक्त ताप', safety: 'संरचनात्मक जाँच', walk: 'पैदल सुगमता', cost: 'सांकेतिक लागत' },
+  checks: 'जाँच सूची', checkNames: { fire: 'दमकल हेतु खुली चौड़ाई', footpath: 'फुटपाथ चौड़ाई', lowrise: 'कम ऊँचाई (≤ G+3)', green: 'हरित आवरण', drain: 'ढका नाला', recharge: 'वर्षा जल पुनर्भरण' },
+  pass: 'पूर्ण', fail: 'अपूर्ण', sev: { fails: 'अपूर्ण', marginal: 'सीमांत', ok: 'पूर्ण' },
+  blocked: 'दमकल रुकी', through: 'दमकल पहुँची',
+  effects: 'आज की तुलना में प्रभाव', stallsMoved: 'ठेले स्थानांतरित', stallsLost: 'ठेले विस्थापित', plots: 'भूखंड पीछे हटे',
+  exportDpr: 'DPR निर्यात (PDF)', share: 'सहेजें व साझा करें', saved: 'सहेजा गया। लिंक कॉपी हुआ', added: 'जोड़ा गया', removed: 'हटाया गया', applied: 'लागू',
+  verified: 'सत्यापित', unverified: 'असत्यापित', representative: 'प्रतिनिधि 120 मी खंड —',
+  disclaimer: 'केवल सांकेतिक पूर्व-व्यवहार्यता। ये जाँचें अनुपालन या संरचनात्मक ऑडिट नहीं हैं। सभी मान स्थल पर सत्यापित करें।',
+  legend: { tall: 'ऊँचे भवन', narrow: 'दमकल हेतु बहुत संकरी', tight: 'तंग', ok: 'खुली', drain: 'नाला', station: 'दमकल केंद्र' },
+  vote: 'आपकी राय', agree: 'सहमत', disagree: 'असहमत',
+};
+
+export const STRINGS = { en, hi };
+export const useT = () => STRINGS[useApp((s) => s.lang)];
+export type T = Dict;
