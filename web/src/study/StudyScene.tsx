@@ -154,12 +154,12 @@ function Rig({ scenario, geom }: { scenario: Scenario; geom?: StudyGeometry | nu
 export default function StudyScene({ L, isPlan, scenario, labels, geom }: Props) {
   const monsoon = scenario === 'monsoon';
   const S = usePalette().scene;
-  const sky = monsoon ? (S.bg === '#0b1220' ? '#141d2e' : '#dfe3e8') : S.bg;
+  const sky = monsoon ? (S.bg === '#0b0b14' ? '#15151f' : '#e6e1d4') : S.bg;
   return (
     <Canvas shadows dpr={[1, 2]} camera={{ position: geom ? [-210, 190, 210] : [-95, 70, 55], fov: 38, near: 0.5, far: 3000 }} gl={{ antialias: false, powerPreference: 'high-performance' }}>
       <color attach="background" args={[sky]} />
       <fog attach="fog" args={[sky, geom ? 350 : 140, geom ? 900 : 360]} />
-      {S.bg !== '#0b1220' && <Sky distance={4500} sunPosition={monsoon ? [0, 0.05, -1] : [-60, 18, 30]} turbidity={monsoon ? 18 : 6} rayleigh={monsoon ? 4 : 1.2} />}
+      {S.bg !== '#0b0b14' && <Sky distance={4500} sunPosition={monsoon ? [0, 0.05, -1] : [-60, 18, 30]} turbidity={monsoon ? 18 : 6} rayleigh={monsoon ? 4 : 1.2} />}
       <hemisphereLight args={[S.hemiSky, S.hemiGround, monsoon ? S.hemi * 0.8 : S.hemi]} />
       <directionalLight position={geom ? [-180, 260, 120] : [-50, 70, 35]} intensity={monsoon ? S.sun * 0.35 : S.sun} color="#ffe9d0" castShadow shadow-mapSize={[2048, 2048]}
         shadow-camera-left={geom ? -300 : -90} shadow-camera-right={geom ? 300 : 90} shadow-camera-top={geom ? 300 : 90} shadow-camera-bottom={geom ? -300 : -90} shadow-camera-far={1000} shadow-bias={-0.0004} />
