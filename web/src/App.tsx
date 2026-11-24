@@ -53,7 +53,7 @@ export default function App() {
       <AnimatePresence>
         {booting && (
           <motion.div className="fixed inset-0 z-[100] bg-bg grid place-items-center" exit={{ opacity: 0 }} transition={{ duration: 0.6 }}>
-            <div className="text-center"><LottieIcon data={loaderAnim()} className="w-36 h-36 mx-auto" /><div className="text-xl font-semibold">Constructive</div><div className="text-muted mt-1">{T.tagline}</div></div>
+            <div className="text-center"><LottieIcon data={loaderAnim()} className="w-36 h-36 mx-auto" /><div className="display text-[44px]">Constructive</div><div className="text-muted mt-1">{T.tagline}</div></div>
           </motion.div>
         )}
       </AnimatePresence>

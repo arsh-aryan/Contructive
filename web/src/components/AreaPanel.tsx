@@ -35,7 +35,7 @@ export default function AreaPanel() {
           className="glass z-20 absolute right-4 top-4 bottom-4 w-[400px] max-w-[calc(100%-2rem)] rounded-2xl shadow-2xl flex flex-col overflow-hidden">
           <div className="px-5 pt-5 pb-3 border-b border-line">
             <div className="lbl">{area.features.buildingCount} buildings · {area.features.streetCount} street segments · 250 m</div>
-            <div className="text-[17px] font-semibold mt-1 truncate">{area.features.narrowestName}</div>
+            <div className="display text-[24px] mt-1.5 truncate">{area.features.narrowestName}</div>
           </div>
           <div className="flex-1 overflow-y-auto px-5 pt-1 bg-panel/40">
             <Section title={T.observations}>
@@ -74,7 +74,7 @@ export default function AreaPanel() {
           </div>
           <div className="p-4 border-t border-line">
             <motion.button whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.98 }} onClick={() => set({ mode: 'study' })}
-              className="w-full rounded-xl py-3 font-semibold text-[#06201f] bg-gradient-to-r from-accent to-[#7ee8d9] shadow-[0_8px_30px_rgba(45,212,191,.25)]">
+              className="w-full rounded-xl py-3 font-bold text-[14px] text-[#06201f] bg-gradient-to-r from-accent to-[#7ee8d9] shadow-[0_8px_30px_rgba(45,212,191,.25)]">
               {T.openStudy} →
             </motion.button>
           </div>
