@@ -1,6 +1,7 @@
 // Constructive — 3D lane scene (three.js). Reads levers + metrics, draws the corridor.
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
 import { ASSUMPTIONS as A, clearWidth, footpathWidth, floodDepth, treeCount } from './model.js';
 
 const COL = {
@@ -18,6 +19,9 @@ export function createScene(container) {
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
   container.appendChild(renderer.domElement);
+  const labelRenderer = new CSS2DRenderer();
+  labelRenderer.domElement.className = 'labels';
+  container.appendChild(labelRenderer.domElement);
 
   const scene = new THREE.Scene();
   scene.background = new THREE.Color(0xf3f0ea);
@@ -42,7 +46,22 @@ export function createScene(container) {
   ground.rotation.x = -Math.PI / 2; ground.receiveShadow = true; scene.add(ground);
 
   let world = new THREE.Group(); scene.add(world);
-  const anim = { tender: null, tenderStop: 0, bus: null, rain: null, water: null, status: null };
+  const anim = { tender: null, tenderStop: 0, bus: null, rain: null, water: null, status: null, grow: 1, cam: null };
+
+  const VIEWS = {
+    normal:  { pos: [-105, 95, 45], target: [0, 0, 0] },
+    fire:    { pos: [-110, 38, 26], target: [-30, 0, 0] },
+    monsoon: { pos: [-60, 22, 48], target: [0, 0, 0] },
+  };
+  function flyTo(name) {
+    const v = VIEWS[name] || VIEWS.normal;
+    anim.cam = { t: 0, fromP: camera.position.clone(), fromT: controls.target.clone(), toP: new THREE.Vector3(...v.pos), toT: new THREE.Vector3(...v.target) };
+  }
+  function label(text, x, y, z, cls = '') {
+    const el = document.createElement('div');
+    el.className = 'tag ' + cls; el.innerHTML = text;
+    const o = new CSS2DObject(el); o.position.set(x, y, z); world.add(o); return o;
+  }
 
   function mat(color, opts = {}) { return new THREE.MeshLambertMaterial({ color, ...opts }); }
   function box(w, h, d, color, x, y, z, opts) {
@@ -50,15 +69,21 @@ export function createScene(container) {
     m.position.set(x, y, z); m.castShadow = true; m.receiveShadow = true; world.add(m); return m;
   }
 
-  function build({ L, isPlan, scenario }) {
-    scene.remove(world); world.traverse((o) => { o.geometry?.dispose(); });
+  let lastScenario = null;
+  function build({ L, isPlan, scenario, text = {} }) {
+    scene.remove(world); world.traverse((o) => { o.geometry?.dispose(); if (o.isCSS2DObject) o.element.remove(); });
     world = new THREE.Group(); scene.add(world);
+    world.scale.y = 0.02; anim.grow = 0;
+    if (scenario !== lastScenario) { flyTo(scenario); lastScenario = scenario; }
     anim.tender = anim.bus = anim.rain = anim.water = null;
 
     const len = A.corridorLength, half = len / 2;
     const fp = footpathWidth(L);
     const roadHalf = L.width / 2;
     const r = rng(7);
+
+    // Chainage markers
+    for (const ch of [0, 30, 60, 90, 120]) label(`Ch. ${ch}`, -half + ch, 0.3, roadHalf + fp + A.plotDepth + 3, 'ch');
 
     // Carriageway and footpaths
     box(len, 0.1, L.width, COL.road, 0, 0.05, 0);
@@ -160,6 +185,7 @@ export function createScene(container) {
       const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pts, 3));
       anim.rain = new THREE.LineSegments(g, new THREE.LineBasicMaterial({ color: 0x6b8fb3, transparent: true, opacity: 0.5 }));
       world.add(anim.rain);
+      label(text.water || `${Math.round(d * 100)} cm`, 20, d + 3, 0, 'water');
     }
     if (scenario === 'fire') {
       const clear = clearWidth(L);
@@ -173,12 +199,15 @@ export function createScene(container) {
       world.add(anim.tender);
       const marker = new THREE.Mesh(new THREE.ConeGeometry(1, 3, 8), mat(0xe67e22));
       marker.position.set(0, 1.5, 0); world.add(marker);
+      label(text.call || 'Fire call · Ch. 60', 0, 6, 0, 'call');
+      const tag = label(blocked ? (text.blocked || 'Blocked') : (text.through || 'Through'), 0, 6, 0, blocked ? 'bad' : 'good');
+      anim.tender.add(tag); tag.position.set(0, 6, 0);
     }
   }
 
   function resize() {
     const { clientWidth: w, clientHeight: h } = container;
-    renderer.setSize(w, h); camera.aspect = w / Math.max(1, h); camera.updateProjectionMatrix();
+    renderer.setSize(w, h); labelRenderer.setSize(w, h); camera.aspect = w / Math.max(1, h); camera.updateProjectionMatrix();
   }
   new ResizeObserver(resize).observe(container); resize();
 
@@ -188,8 +217,16 @@ export function createScene(container) {
     if (anim.tender && anim.tender.position.x < anim.tenderStop) anim.tender.position.x = Math.min(anim.tenderStop, anim.tender.position.x + dt * 18);
     if (anim.bus) { anim.bus.position.x += dt * 10; if (anim.bus.position.x > A.corridorLength / 2 + 10) anim.bus.position.x = -A.corridorLength / 2 - 10; }
     if (anim.rain) { anim.rain.position.y -= dt * 40; if (anim.rain.position.y < -20) anim.rain.position.y = 0; }
-    controls.update(); renderer.render(scene, camera);
+    if (anim.grow < 1) { anim.grow = Math.min(1, anim.grow + dt * 2.2); world.scale.y = 0.02 + 0.98 * (1 - Math.pow(1 - anim.grow, 3)); }
+    if (anim.cam) {
+      anim.cam.t = Math.min(1, anim.cam.t + dt * 0.9);
+      const k = anim.cam.t < 0.5 ? 4 * anim.cam.t ** 3 : 1 - Math.pow(-2 * anim.cam.t + 2, 3) / 2;
+      camera.position.lerpVectors(anim.cam.fromP, anim.cam.toP, k);
+      controls.target.lerpVectors(anim.cam.fromT, anim.cam.toT, k);
+      if (anim.cam.t >= 1) anim.cam = null;
+    }
+    controls.update(); renderer.render(scene, camera); labelRenderer.render(scene, camera);
   });
 
-  return { build };
+  return { build, flyTo };
 }

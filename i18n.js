@@ -1,6 +1,9 @@
 export const STR = {
   en: {
     tagline: 'Street pre-feasibility',
+    language: 'Language', added: 'Added', applied: 'Applied street type', removed: 'Removed',
+    legend: { existing: 'Existing fabric', cracked: 'Cracked / unsafe', proposed: 'Proposed change', stall: 'Stall / encroachment' },
+    call: 'Fire call · Ch. 60', standing: 'standing water', of: 'of', met: 'met',
     ward: 'Ward', lane: 'Lane', viewingAs: 'Viewing as',
     roles: { officer: 'Ward officer', planner: 'Planner / architect', rwa: 'Resident / RWA' },
     state: 'State', today: 'Today', plan: 'Proposed',
@@ -29,6 +32,9 @@ export const STR = {
   },
   hi: {
     tagline: 'सड़क पूर्व-व्यवहार्यता',
+    language: 'भाषा', added: 'जोड़ा गया', applied: 'सड़क प्रकार लागू', removed: 'हटाया गया',
+    legend: { existing: 'मौजूदा भवन', cracked: 'दरारयुक्त / असुरक्षित', proposed: 'प्रस्तावित बदलाव', stall: 'ठेला / अतिक्रमण' },
+    call: 'आग की कॉल · Ch. 60', standing: 'जमा पानी', of: 'में से', met: 'पूर्ण',
     ward: 'वार्ड', lane: 'गली', viewingAs: 'भूमिका',
     roles: { officer: 'वार्ड अधिकारी', planner: 'योजनाकार / वास्तुकार', rwa: 'निवासी / RWA' },
     state: 'स्थिति', today: 'आज', plan: 'प्रस्तावित',
