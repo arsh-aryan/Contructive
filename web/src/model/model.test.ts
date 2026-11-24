@@ -1,5 +1,6 @@
 import { describe, expect, test } from 'vitest';
 import * as M from './model';
+import { baselineFrom, observe, suggest, type AreaFeatures } from './diagnose';
 
 const B = M.DEFAULT_BASELINE;
 
@@ -33,5 +34,28 @@ describe('model', () => {
     const c = M.cost(M.applyWorks([{ id: 'widen', value: 14 }], B), B);
     expect(c.lowCr).toBeCloseTo(c.totalCr * 0.6);
     expect(c.items.land).toBeGreaterThan(c.items.road);
+  });
+});
+
+describe('diagnose', () => {
+  const f: AreaFeatures = {
+    radiusM: 250, narrowestWidthM: 3, narrowestName: 'Test Gali', widthSource: 'class-default', streetCount: 12,
+    buildingCount: 140, buildingCoverage: 0.55, medianLevels: null, levelsTaggedShare: 0, drainCount: 0,
+    greenShare: 0.02, nearestFireStationKm: 4.2, nearestFireStationName: 'Fire Stn',
+  };
+  test('baseline from features', () => {
+    const L = baselineFrom(f);
+    expect(L.width).toBe(3); expect(L.floors).toBe(5); expect(L.drain).toBe(false); expect(L.green).toBe(2);
+  });
+  test('observations flag the narrow lane and missing drain', () => {
+    const obs = observe(f, baselineFrom(f));
+    expect(obs.find((o) => o.key === 'clear')?.sev).toBe('fails');
+    expect(obs.find((o) => o.key === 'drain')?.sev).toBe('fails');
+  });
+  test('suggestions are ranked and include clearing the lane', () => {
+    const s = suggest(f, baselineFrom(f));
+    expect(s.length).toBeGreaterThan(3);
+    expect(s.map((x) => x.work.id)).toContain('clearEnc');
+    expect(s[0].score).toBeGreaterThanOrEqual(s[s.length - 1].score);
   });
 });
