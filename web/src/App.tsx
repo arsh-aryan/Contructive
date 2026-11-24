@@ -39,8 +39,8 @@ export default function App() {
           <CityMap />
           <AreaPanel />
           <div className="absolute z-20 left-4 bottom-8 glass rounded-lg px-3 py-2 text-[11px] text-muted grid gap-1">
-            <Legend c="#f2705a" t={T.legend.narrow} /><Legend c="#f0b44c" t={T.legend.tight} /><Legend c="#2dd4bf" t={T.legend.ok} />
-            <Legend c="#50a0ff" t={T.legend.drain} /><Legend c="#ff963c" t={T.legend.station} />
+            <Legend c="#b93a2b" t={T.legend.narrow} /><Legend c="#c48c28" t={T.legend.tight} /><Legend c="#0f766e" t={T.legend.ok} />
+            <Legend c="#2f6f9f" t={T.legend.drain} /><Legend c="#c46e1e" t={T.legend.station} />
           </div>
         </div>
         <AnimatePresence>

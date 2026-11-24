@@ -59,7 +59,7 @@ export default function StudyView() {
     <div className="absolute inset-0 grid grid-cols-1 lg:grid-cols-[1fr_400px]">
       <div className="relative min-h-[50vh]">
         <StudyScene L={shownL} isPlan={view === 'plan'} scenario={scenario} geom={geom} labels={{ call: `${T.scenarios.fire} · Ch. 60`, blocked: T.blocked, through: T.through }} />
-        <div className="glass absolute top-4 left-4 rounded-xl p-3 flex gap-3 flex-wrap shadow-2xl">
+        <div className="glass absolute top-4 left-4 rounded-xl p-3 flex gap-3 flex-wrap">
           <Field label={T.state}>
             <select className="sel" value={view} onChange={(e) => s.set({ view: e.target.value as 'today' | 'plan' })}>
               <option value="today">{T.today}</option><option value="plan">{T.plan}</option>
@@ -82,7 +82,7 @@ export default function StudyView() {
         <AnimatePresence>
           {status && (
             <motion.div key={status.key} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 16 }}
-              className={`glass absolute left-4 bottom-4 rounded-xl pl-2 pr-4 py-2 flex items-center gap-3 shadow-2xl border ${status.bad ? 'border-fail/40' : 'border-ok/40'}`}>
+              className={`glass absolute left-4 bottom-4 rounded-xl pl-2 pr-4 py-2 flex items-center gap-3 border ${status.bad ? 'border-fail/40' : 'border-ok/40'}`}>
               <LottieIcon data={status.anim} className="w-10 h-10" />
               <div><div className={`display text-[18px] ${status.bad ? 'text-fail' : 'text-ok'}`}>{status.title}</div><div className="text-[11px] text-muted tnum">{status.sub}</div></div>
             </motion.div>
@@ -133,7 +133,7 @@ export default function StudyView() {
                   <span>{view === 'plan' && Math.abs(mp[k] - mb[k]) > 1e-9 && <span className="text-faint text-[11px] mr-1.5 num-mono">{mb[k].toFixed(d)} →</span>}
                     <span className="display text-[22px]"><Num value={shown[k]} d={d} /></span> <span className="text-[11px] text-muted">{u}</span></span>
                 </div>
-                <div className="relative h-1.5 bg-[#222b2f] rounded mt-2 overflow-hidden">
+                <div className="relative h-1.5 bg-line rounded mt-2 overflow-hidden">
                   <div className="absolute top-0 bottom-0 w-0.5 bg-faint z-10 transition-all duration-700" style={{ left: `${good(mb[k])}%` }} />
                   <div className={`absolute left-0 top-0 bottom-0 rounded transition-all duration-700 ${worse ? 'bg-fail' : 'bg-gradient-to-r from-accent-deep to-accent'}`} style={{ width: `${good(shown[k])}%` }} />
                 </div>
@@ -169,7 +169,7 @@ export default function StudyView() {
         {works.length > 0 && <div className="text-right tnum"><div className="text-[11px] text-muted">{T.metrics.cost} (±40%)</div><div className="display text-[24px]">₹<Num value={mp.cost.totalCr} d={2} /> Cr</div></div>}
         <button onClick={share} className="rounded-lg px-4 py-2.5 border border-line hover:bg-card">{T.share}</button>
         <button onClick={() => exportDpr({ city: city.name, place, baseline, works, observations: area ? observe(area.features, baseline) : [], workLabel: (w) => workLabel(T, w) })}
-          className="rounded-lg px-4 py-2.5 font-semibold text-[#06201f] bg-accent hover:brightness-110">{T.exportDpr}</button>
+          className="rounded-lg px-4 py-2.5 font-semibold text-white bg-accent hover:bg-accent-deep">{T.exportDpr}</button>
       </div>
     </div>
   );

@@ -29,7 +29,7 @@ const doc = (layers, op = 60, w = 100, h = 100) => ({ v: '5.7.4', fr: 30, ip: 0,
 
 // Buildings rising, staggered — used by the loader.
 export function loaderAnim() {
-  const cols = [0x0f8b8d, 0x23221f, 0x0f8b8d, 0x9b968f, 0x0f8b8d];
+  const cols = [0x0f766e, 0x1f1d1a, 0x0f766e, 0xa29d93, 0x0f766e];
   const heights = [34, 52, 26, 60, 40];
   const layers = heights.map((h, i) => {
     const x = 18 + i * 16, t0 = i * 4;
@@ -38,12 +38,12 @@ export function loaderAnim() {
       s: K([[t0, [100, 0, 100]], [t0 + 16, [100, 100, 100]], [40 + t0 / 2, [100, 100, 100]], [56, [100, 0, 100]]]),
     });
   });
-  layers.push(layer(9, [rect(90, 2, 0xc9c2b4, 0)], { p: [50, 83, 0] }));
+  layers.push(layer(9, [rect(90, 2, 0xd6d1c7, 0)], { p: [50, 83, 0] }));
   return doc(layers, 60);
 }
 
 // Expanding siren ring — fire tender blocked.
-export function sirenAnim(color = 0xb4472f) {
+export function sirenAnim(color = 0xb93a2b) {
   const ringL = (ind, delay) => layer(ind, [ring(30, color, 5)], {
     s: K([[delay, [40, 40, 100]], [delay + 30, [100, 100, 100]]]),
     o: K([[delay, 100], [delay + 30, 0]]),
@@ -64,7 +64,7 @@ export function okAnim(color = 0x3d7a4a) {
 }
 
 // Falling drops — monsoon.
-export function rainAnim(color = 0x4a86b5) {
+export function rainAnim(color = 0x2f6f9f) {
   const drops = [[30, 0], [50, 8], [70, 4], [40, 14], [60, 18]];
   return doc(drops.map(([x, d], i) => layer(i + 1, [{ ty: 'gr', it: [{ ty: 'rc', d: 1, p: S([0, 0]), s: S([4, 14]), r: S(2) }, { ty: 'fl', c: S(rgb(color)), o: S(100), r: 1 }, tr()] }], {
     p: K([[d, [x, 10, 0]], [d + 24, [x, 90, 0]]]),
@@ -75,7 +75,7 @@ export function rainAnim(color = 0x4a86b5) {
 // Constructive logo: a "C" drawn as a road ring, three buildings rise inside it,
 // a teal pulse runs round the ring, then it settles. 120 frames @30fps.
 export function logoAnim() {
-  const teal = 0x2dd4bf, ink = 0xeef2f1, deep = 0x0f8b8d;
+  const teal = 0x0f766e, ink = 0x1f1d1a, deep = 0x8fc9c0;
   const arc = {
     ty: 'gr', it: [
       { ty: 'el', d: 1, p: S([0, 0]), s: S([74, 74]) },
@@ -102,6 +102,6 @@ export function logoAnim() {
     bar(3, 38, 22, deep, 14),
     bar(4, 50, 36, teal, 18),
     bar(5, 62, 28, ink, 22),
-    layer(6, [rect(34, 3, 0x66767a, 1)], { p: [50, 67, 0], o: K([[10, 0], [18, 100]]) }, 120),
+    layer(6, [rect(34, 3, 0xa29d93, 1)], { p: [50, 67, 0], o: K([[10, 0], [18, 100]]) }, 120),
   ], 120);
 }

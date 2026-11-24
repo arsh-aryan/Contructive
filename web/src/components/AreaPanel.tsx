@@ -18,21 +18,21 @@ export default function AreaPanel() {
     <AnimatePresence mode="wait">
       {areaStatus === 'idle' && (
         <motion.div key="hint" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 12 }}
-          className="glass z-20 absolute left-1/2 -translate-x-1/2 bottom-8 rounded-xl px-5 py-3 flex items-center gap-3 shadow-2xl">
+          className="glass z-20 absolute left-1/2 -translate-x-1/2 bottom-8 rounded-xl px-5 py-3 flex items-center gap-3">
           <span className="relative flex h-2.5 w-2.5"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent opacity-60" /><span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-accent" /></span>
           {T.pickHint}
         </motion.div>
       )}
       {areaStatus === 'loading' && (
         <motion.div key="load" initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 30 }}
-          className="glass z-20 absolute right-4 top-4 w-[380px] rounded-2xl p-6 flex flex-col items-center gap-2 shadow-2xl">
+          className="glass z-20 absolute right-4 top-4 w-[380px] rounded-2xl p-6 flex flex-col items-center gap-2">
           <LottieIcon data={loaderAnim()} className="w-24 h-24" />
           <div className="text-muted">{T.analysing}</div>
         </motion.div>
       )}
       {areaStatus === 'ready' && area && (
         <motion.aside key="panel" initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 40 }} transition={{ type: 'spring', stiffness: 180, damping: 24 }}
-          className="glass z-20 absolute right-4 top-4 bottom-4 w-[400px] max-w-[calc(100%-2rem)] rounded-2xl shadow-2xl flex flex-col overflow-hidden">
+          className="glass z-20 absolute right-4 top-4 bottom-4 w-[400px] max-w-[calc(100%-2rem)] rounded-2xl flex flex-col overflow-hidden">
           <div className="px-5 pt-5 pb-3 border-b border-line">
             <div className="lbl">{area.features.buildingCount} buildings · {area.features.streetCount} street segments · 250 m</div>
             <div className="display text-[24px] mt-1.5 truncate">{area.features.narrowestName}</div>
@@ -59,7 +59,7 @@ export default function AreaPanel() {
                 const on = chosen.has(s.work.id);
                 return (
                   <motion.label key={s.work.id} initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.2 + i * 0.05 }}
-                    className={`flex gap-3 items-start p-3 mb-2 rounded-lg border cursor-pointer transition-colors ${on ? 'border-accent/60 bg-accent/8' : 'border-line bg-card hover:border-[#3c494d]'}`}>
+                    className={`flex gap-3 items-start p-3 mb-2 rounded-lg border cursor-pointer transition-colors ${on ? 'border-accent/60 bg-accent/8' : 'border-line bg-card hover:border-faint'}`}>
                     <input type="checkbox" className="mt-1 accent-[var(--color-accent)]" checked={on}
                       onChange={() => { on ? removeWork(s.work.id) : addWork(s.work); toast(`${on ? T.removed : T.added}: ${workLabel(T, s.work)}`); }} />
                     <span className="flex-1">
@@ -74,7 +74,7 @@ export default function AreaPanel() {
           </div>
           <div className="p-4 border-t border-line">
             <motion.button whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.98 }} onClick={() => set({ mode: 'study' })}
-              className="w-full rounded-xl py-3 font-bold text-[14px] text-[#06201f] bg-gradient-to-r from-accent to-[#7ee8d9] shadow-[0_8px_30px_rgba(45,212,191,.25)]">
+              className="w-full rounded-lg py-3 font-bold text-[14px] text-white bg-accent hover:bg-accent-deep transition-colors">
               {T.openStudy} →
             </motion.button>
           </div>
