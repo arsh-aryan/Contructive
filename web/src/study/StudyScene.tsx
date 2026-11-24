@@ -9,6 +9,7 @@ import * as THREE from 'three';
 import { ASSUMPTIONS as A, clearWidth, footpathWidth, floodDepth, treeCount, type Levers } from '../model/model';
 import type { Scenario } from '../store/useApp';
 import RealArea from './RealArea';
+import { usePalette } from '../theme';
 import type { StudyGeometry } from './geometry';
 
 const C = {
@@ -152,19 +153,21 @@ function Rig({ scenario, geom }: { scenario: Scenario; geom?: StudyGeometry | nu
 
 export default function StudyScene({ L, isPlan, scenario, labels, geom }: Props) {
   const monsoon = scenario === 'monsoon';
+  const S = usePalette().scene;
+  const sky = monsoon ? (S.bg === '#0b1220' ? '#141d2e' : '#dfe3e8') : S.bg;
   return (
     <Canvas shadows dpr={[1, 2]} camera={{ position: geom ? [-210, 190, 210] : [-95, 70, 55], fov: 38, near: 0.5, far: 3000 }} gl={{ antialias: false, powerPreference: 'high-performance' }}>
-      <color attach="background" args={[monsoon ? '#dfe3e6' : '#f5f3ee']} />
-      <fog attach="fog" args={[monsoon ? '#dfe3e6' : '#f5f3ee', geom ? 350 : 140, geom ? 900 : 360]} />
-      <Sky distance={4500} sunPosition={monsoon ? [0, 0.05, -1] : [-60, 18, 30]} turbidity={monsoon ? 18 : 6} rayleigh={monsoon ? 4 : 1.2} />
-      <hemisphereLight args={['#ffffff', '#d8d2c6', monsoon ? 1.0 : 1.3]} />
-      <directionalLight position={geom ? [-180, 260, 120] : [-50, 70, 35]} intensity={monsoon ? 0.8 : 2.4} color="#ffe3c0" castShadow shadow-mapSize={[2048, 2048]}
+      <color attach="background" args={[sky]} />
+      <fog attach="fog" args={[sky, geom ? 350 : 140, geom ? 900 : 360]} />
+      {S.bg !== '#0b1220' && <Sky distance={4500} sunPosition={monsoon ? [0, 0.05, -1] : [-60, 18, 30]} turbidity={monsoon ? 18 : 6} rayleigh={monsoon ? 4 : 1.2} />}
+      <hemisphereLight args={[S.hemiSky, S.hemiGround, monsoon ? S.hemi * 0.8 : S.hemi]} />
+      <directionalLight position={geom ? [-180, 260, 120] : [-50, 70, 35]} intensity={monsoon ? S.sun * 0.35 : S.sun} color="#ffe9d0" castShadow shadow-mapSize={[2048, 2048]}
         shadow-camera-left={geom ? -300 : -90} shadow-camera-right={geom ? 300 : 90} shadow-camera-top={geom ? 300 : 90} shadow-camera-bottom={geom ? -300 : -90} shadow-camera-far={1000} shadow-bias={-0.0004} />
       <Environment resolution={256}>
         <Lightformer form="rect" intensity={2} position={[0, 30, -40]} scale={[100, 20, 1]} color="#ffd9b0" />
         <Lightformer form="rect" intensity={1} position={[-50, 20, 40]} scale={[60, 20, 1]} color="#9ccfff" />
       </Environment>
-      <mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow><planeGeometry args={[800, 800]} /><meshStandardMaterial color={C.ground} roughness={1} /></mesh>
+      <mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow><planeGeometry args={[800, 800]} /><meshStandardMaterial color={S.ground} roughness={1} /></mesh>
       {geom
         ? <RealArea g={geom} L={L} isPlan={isPlan} scenario={scenario} labels={labels} />
         : <Lane L={L} isPlan={isPlan} scenario={scenario} labels={labels} />}

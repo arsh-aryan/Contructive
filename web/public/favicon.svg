@@ -1,7 +1,12 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
-  <rect width="100" height="100" rx="18" fill="#f5f3ee"/>
-  <path d="M76 24 A37 37 0 1 0 76 76" fill="none" stroke="#1f1d1a" stroke-width="9" stroke-linecap="round"/>
-  <rect x="33.5" y="44" width="9" height="22" rx="1.5" fill="#8fc9c0"/>
-  <rect x="45.5" y="30" width="9" height="36" rx="1.5" fill="#0f766e"/>
-  <rect x="57.5" y="38" width="9" height="28" rx="1.5" fill="#1f1d1a"/>
+  <defs>
+    <linearGradient id="n" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#34477a"/><stop offset=".5" stop-color="#1b2a4a"/><stop offset="1" stop-color="#0f1a31"/></linearGradient>
+    <clipPath id="c"><rect x="4" y="4" width="92" height="92" rx="22"/></clipPath>
+  </defs>
+  <rect x="4" y="4" width="92" height="92" rx="22" fill="url(#n)"/>
+  <g clip-path="url(#c)" stroke-width="9" stroke-linecap="round">
+    <line x1="14" y1="62" x2="62" y2="14" stroke="#c81d48"/>
+    <line x1="26" y1="74" x2="74" y2="26" stroke="#eef2fa"/>
+    <line x1="38" y1="86" x2="86" y2="38" stroke="#c81d48"/>
+  </g>
 </svg>

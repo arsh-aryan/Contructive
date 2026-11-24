@@ -4,6 +4,7 @@ import { CITIES } from '../data/cities';
 import type { AreaData } from '../services/overpass';
 import { DEFAULT_BASELINE, type Levers, type Work } from '../model/model';
 import { baselineFrom } from '../model/diagnose';
+import { initialThemePref, resolveTheme, type ThemeName, type ThemePref } from '../theme';
 
 export type Lang = 'en' | 'hi';
 export type Role = 'officer' | 'planner' | 'rwa';
@@ -14,6 +15,7 @@ interface Toast { id: number; text: string }
 
 interface AppState {
   lang: Lang; role: Role; mode: Mode;
+  themePref: ThemePref; theme: ThemeName;
   city: City;
   point: [number, number] | null;
   area: AreaData | null; areaStatus: 'idle' | 'loading' | 'error' | 'ready'; areaError?: string;
@@ -31,6 +33,7 @@ interface AppState {
 let tid = 0;
 export const useApp = create<AppState>((set, get) => ({
   lang: 'en', role: 'officer', mode: 'city',
+  themePref: initialThemePref(), theme: resolveTheme(initialThemePref()),
   city: CITIES.find((c) => c.name === 'Chandni Chowk')!,
   point: null, area: null, areaStatus: 'idle',
   baseline: DEFAULT_BASELINE, works: [], view: 'today', scenario: 'normal', proposalId: null,

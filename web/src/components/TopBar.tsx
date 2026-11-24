@@ -1,19 +1,17 @@
 import { useApp, type Lang, type Role } from '../store/useApp';
+import type { ThemePref } from '../theme';
 import { CITIES, STATES } from '../data/cities';
 import { useT } from '../i18n/strings';
 import { Brand, Field } from './ui';
-import { logoAnim } from '../anim/anims';
 import { backendLabel } from '../services/supabase';
-import { useMemo } from 'react';
 
 export default function TopBar() {
   const T = useT();
-  const { lang, role, city, mode, set } = useApp();
-  const logo = useMemo(() => logoAnim(), []);
+  const { lang, role, city, mode, themePref, set } = useApp();
   return (
-    <header className="relative z-30 flex flex-wrap items-end gap-4 px-5 py-3 border-b border-line bg-panel/90 backdrop-blur">
+    <header className="surface relative z-30 flex flex-wrap items-end gap-4 px-5 py-3 border-b border-line">
       <div className="flex items-center gap-3 self-center mr-2">
-        <Brand data={logo} />
+        <Brand />
         <div className="hidden xl:block text-[11px] text-muted max-w-[150px] leading-tight">{T.tagline}</div>
       </div>
       <Field label={T.city}>
@@ -32,6 +30,11 @@ export default function TopBar() {
       <Field label={T.viewingAs}>
         <select className="sel" value={role} onChange={(e) => set({ role: e.target.value as Role })}>
           {Object.entries(T.roles).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+        </select>
+      </Field>
+      <Field label={T.theme}>
+        <select className="sel" value={themePref} onChange={(e) => set({ themePref: e.target.value as ThemePref })}>
+          <option value="light">{T.themes.light}</option><option value="dark">{T.themes.dark}</option><option value="system">{T.themes.system}</option>
         </select>
       </Field>
       <Field label={T.language}>

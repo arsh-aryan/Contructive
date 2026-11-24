@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useApp } from '../store/useApp';
 import { WORKS, type Work } from '../model/model';
 import type { T } from '../i18n/strings';
+import { Logo } from './Logo';
 
 export function workLabel(T: T, w: Work) {
   const def = WORKS[w.id], name = T.workNames[w.id];
@@ -74,13 +75,14 @@ export function Toasts() {
   );
 }
 
-/** Product mark: animated logo + uppercase wordmark set in a flat label. */
-export function Brand({ size = 'sm', data }: { size?: 'sm' | 'lg'; data: object }) {
+/** Product mark, set like Praxis: logo + uppercase display wordmark + small pill badge. */
+export function Brand({ size = 'sm', reveal = false }: { size?: 'sm' | 'lg'; reveal?: boolean }) {
   const lg = size === 'lg';
   return (
-    <div className={`inline-flex items-center ${lg ? 'gap-4' : 'gap-2'}`}>
-      <LottieIcon data={data} className={lg ? 'w-20 h-20' : 'w-9 h-9'} />
-      <span className={`display uppercase !tracking-[0.08em] bg-ink text-bg rounded-[4px] ${lg ? 'text-[38px] px-4 py-1.5' : 'text-[15px] px-2.5 py-1'}`}>Constructive</span>
-    </div>
+    <span className={`inline-flex items-center ${lg ? 'gap-4' : 'gap-2.5'}`}>
+      <Logo size={lg ? 72 : 36} reveal={reveal} />
+      <span className={`font-display font-extrabold uppercase tracking-[0.12em] text-ink ${lg ? 'text-[44px]' : 'text-xl'}`}>Constructive</span>
+      <span className={`rounded-full bg-crimson-soft font-bold uppercase tracking-wider text-crimson ring-1 ring-crimson/30 ${lg ? 'px-2.5 py-1 text-[12px]' : 'px-1.5 py-0.5 text-[10px]'}`}>Civic</span>
+    </span>
   );
 }

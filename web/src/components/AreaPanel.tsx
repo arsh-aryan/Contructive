@@ -74,7 +74,7 @@ export default function AreaPanel() {
           </div>
           <div className="p-4 border-t border-line">
             <motion.button whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.98 }} onClick={() => set({ mode: 'study' })}
-              className="w-full rounded-lg py-3 font-bold text-[14px] text-white bg-accent hover:bg-accent-deep transition-colors">
+              className="btn-metal w-full py-3 text-[14px]">
               {T.openStudy} →
             </motion.button>
           </div>

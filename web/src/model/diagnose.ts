@@ -17,6 +17,10 @@ export interface AreaFeatures {
   greenShare: number;            // 0..1 park/garden/forest area
   nearestFireStationKm: number | null;
   nearestFireStationName: string | null;
+  flyoverM?: number;            // length of elevated carriageway (bridges) in the area
+  flyoverNames?: string[];
+  nhRefs?: string[];            // national highways (NH refs / trunk roads) in the area
+  nhM?: number;
 }
 
 export type Severity = 'fails' | 'marginal' | 'ok';
@@ -53,6 +57,20 @@ export function observe(f: AreaFeatures, L: Levers): Observation[] {
     });
   } else {
     out.push({ key: 'station', where: `Within 8 km`, text: 'No fire station mapped nearby in OSM. Verify with the fire department.', sev: 'marginal', source: 'OSM', verified: false });
+  }
+  if (f.flyoverM && f.flyoverM > 20) {
+    out.push({
+      key: 'flyover', where: f.flyoverNames?.length ? f.flyoverNames.join(', ') : 'Flyover',
+      text: `${f.flyoverM} m of elevated carriageway (flyover/bridge) in the area. Not widened by these works; ground-level road, drains and vending below it are treated separately. Check headroom for a fire tender (assumed ≥ 4.5 m).`,
+      sev: 'marginal', source: 'OSM (bridge)', verified: false,
+    });
+  }
+  if (f.nhRefs?.length || (f.nhM && f.nhM > 30)) {
+    out.push({
+      key: 'nh', where: f.nhRefs?.length ? f.nhRefs.join(', ') : 'National highway',
+      text: `National highway / trunk road passes through (${f.nhM ?? 0} m). It is under NHAI / MoRTH, not the municipality: widening, BRT or encroachment drives on it need their approval. Proposed works here apply to municipal streets only.`,
+      sev: 'marginal', source: 'OSM (ref / road class)', verified: false,
+    });
   }
   out.push({
     key: 'drain', where: `${f.radiusM} m radius`,

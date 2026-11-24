@@ -13,10 +13,12 @@ const CLASS_WIDTH: Record<string, number> = {
   primary: 14, primary_link: 10, trunk: 18, trunk_link: 12, motorway: 24,
 };
 
+export interface StreetProps { name: string; width: number; cls: string; bridge?: boolean; nh?: boolean; ref?: string }
+
 export interface AreaData {
   features: AreaFeatures;
   buildings: Feature<Polygon, { levels: number | null; height: number }>[];
-  streets: Feature<LineString, { name: string; width: number; cls: string }>[];
+  streets: Feature<LineString, StreetProps>[];
   drains: Feature<LineString>[];
   greens: Feature<Polygon>[];
   stations: Feature<Point, { name: string }>[];
@@ -35,6 +37,20 @@ async function query(q: string): Promise<{ elements: OsmEl[] }> {
     } catch (e) { last = e; }
   }
   throw last;
+}
+
+/** Flyover length and national-highway refs among the streets. */
+export function gradeSeparation(streets: Feature<LineString, StreetProps>[]) {
+  const fly = streets.filter((s) => s.properties.bridge && !['path'].includes(s.properties.cls));
+  const nh = streets.filter((s) => s.properties.nh);
+  const numbered = [...new Set(nh.map((s) => s.properties.ref ?? '').filter((r) => /^NH/i.test(r)))];
+  const refs = numbered.length ? numbered : [...new Set(nh.filter((s) => !s.properties.bridge).map((s) => s.properties.name).filter((r) => r && !r.startsWith('Unnamed')))];
+  return {
+    flyoverM: Math.round(fly.reduce((a, s) => a + turf.length(s, { units: 'meters' }), 0)),
+    flyoverNames: [...new Set(fly.map((s) => s.properties.name).filter((n) => !n.startsWith('Unnamed')))].slice(0, 3),
+    nhRefs: refs.slice(0, 3),
+    nhM: Math.round(nh.reduce((a, s) => a + turf.length(s, { units: 'meters' }), 0)),
+  };
 }
 
 const num = (s?: string) => { const n = parseFloat(String(s ?? '').replace(',', '.')); return Number.isFinite(n) ? n : null; };
@@ -82,7 +98,9 @@ out geom center;`;
       buildings.push(turf.polygon([coords], { levels, height: h }));
     } else if (t.highway) {
       const tagged = num(t.width);
-      streets.push(turf.lineString(coords, { name: t.name ?? t['name:en'] ?? `Unnamed ${t.highway}`, width: tagged ?? CLASS_WIDTH[t.highway] ?? 5, cls: tagged ? 'tagged' : t.highway }));
+      const ref = t.ref ?? '';
+      streets.push(turf.lineString(coords, { name: t.name ?? t['name:en'] ?? `Unnamed ${t.highway}`, width: tagged ?? CLASS_WIDTH[t.highway] ?? 5, cls: tagged ? 'tagged' : t.highway,
+        bridge: t.bridge === 'yes' || t.layer === '1' || t.layer === '2', nh: /^NH\s?\d/i.test(ref) || t.highway === 'trunk' || t.highway === 'motorway', ref }));
     } else if (t.waterway) {
       drains.push(turf.lineString(coords));
     } else if (closed) {
@@ -117,6 +135,7 @@ out geom center;`;
     greenShare: Math.min(1, green / circleArea),
     nearestFireStationKm: nearest?.km ?? null,
     nearestFireStationName: nearest?.name ?? null,
+    ...gradeSeparation(streets),
   };
   const data: AreaData = { features, buildings, streets, drains, greens, stations, center };
   putCachedArea(key, data);

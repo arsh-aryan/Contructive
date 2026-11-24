@@ -8,7 +8,7 @@ import type { Levers } from '../model/model';
 
 export type XZ = [number, number];
 export interface StudyBuilding { id: number; ring: XZ[]; height: number; baseHeight: number; capped: boolean; cut: XZ[][]; affected: boolean; estimated: boolean }
-export interface StudyStreet { ring: XZ[]; width: number; cls: string; isStudy: boolean }
+export interface StudyStreet { ring: XZ[]; width: number; cls: string; isStudy: boolean; bridge: boolean; nh: boolean; line: XZ[] }
 export interface StudyGeometry {
   buildings: StudyBuilding[];
   streets: StudyStreet[];
@@ -36,7 +36,8 @@ const outer = (g: Polygon | MultiPolygon): number[][][] =>
 export function studyStreet(area: { center: [number, number]; streets: AreaData['streets'] }): Feature<LineString, { name: string; width: number; cls: string }> | null {
   const c = turf.point(area.center);
   const len = (s: AreaData['streets'][number]) => turf.length(s, { units: 'meters' });
-  const cands = area.streets.filter((s) => s.properties.cls !== 'path' && len(s) >= 25);
+  // Never study a flyover deck or a national highway: those are not municipal ground streets.
+  const cands = area.streets.filter((s) => s.properties.cls !== 'path' && !s.properties.bridge && !s.properties.nh && len(s) >= 25);
   const near = cands.filter((s) => turf.pointToLineDistance(c, s, { units: 'meters' }) < 150);
   const pool = near.length ? near : cands.length ? cands : area.streets;
   if (!pool.length) return null;
@@ -54,7 +55,7 @@ export function buildStudy(area: AreaData, base: Levers, plan: Levers, isPlan: b
 
   // All segments of the studied street (tiles split one street into pieces).
   const sameStreet = street && !street.properties.name.startsWith('Unnamed')
-    ? area.streets.filter((x) => x.properties.name === street.properties.name)
+    ? area.streets.filter((x) => x.properties.name === street.properties.name && !x.properties.bridge && !x.properties.nh)
     : street ? [street] : [];
   const studySet = new Set(sameStreet);
   const longest = sameStreet.reduce<typeof street>((a, x) => (!a || turf.length(x) > turf.length(a) ? x : a), null);
@@ -106,7 +107,7 @@ export function buildStudy(area: AreaData, base: Levers, plan: Levers, isPlan: b
     const w = isStudy ? L.width : s.properties.width;
     try {
       const buf = turf.buffer(s, Math.max(1, w / 2), { units: 'meters' });
-      if (buf) outer(buf.geometry as Polygon | MultiPolygon).forEach((r) => streets.push({ ring: r.map(P), width: w, cls: s.properties.cls, isStudy }));
+      if (buf) outer(buf.geometry as Polygon | MultiPolygon).forEach((r) => streets.push({ ring: r.map(P), width: w, cls: s.properties.cls, isStudy, bridge: !!s.properties.bridge, nh: !!s.properties.nh, line: s.geometry.coordinates.map(P) }));
     } catch { /* skip */ }
   }
 
